@@ -6,92 +6,113 @@
         </div>
         <div class="inline-drawer-content">
 
+            <!-- Master enable -->
             <div class="ecc-setting-row">
                 <input id="ecc_enabled" type="checkbox" />
-                <label for="ecc_enabled">Enable cat decorations</label>
+                <label for="ecc_enabled">Enable all decorations</label>
             </div>
 
             <hr class="ecc-divider"/>
 
-            <label class="ecc-label">Chutes API Key</label>
-            <input id="ecc_api_key" type="password"
-                   placeholder="Paste your Chutes API key here"
-                   class="ecc-input"/>
-            <small class="ecc-hint">Saved locally in SillyTavern only.</small>
+            <!-- API Settings -->
+            <label class="ecc-label">⚙️ API Settings</label>
+            <label class="ecc-sublabel">Chutes API Key</label>
+            <input id="ecc_api_key" type="password" placeholder="Paste your Chutes API key" class="ecc-input"/>
 
-            <hr class="ecc-divider"/>
+            <label class="ecc-sublabel" style="margin-top:6px;">Chute Endpoint URL</label>
+            <input id="ecc_chute_url" type="text" placeholder="https://chutes-z-image-turbo.chutes.ai/generate" class="ecc-input"/>
 
-            <label class="ecc-label">Chute Endpoint URL</label>
-            <input id="ecc_chute_url" type="text"
-                   placeholder="e.g. https://chutes-z-image-turbo.chutes.ai/generate"
-                   class="ecc-input"/>
-            <small class="ecc-hint">Copy the URL from the curl example on any Chutes image model page.</small>
-
-            <hr class="ecc-divider"/>
-
-            <!-- Background removal mode toggle -->
-            <label class="ecc-label">🖼️ Background Removal Method</label>
-
+            <!-- Background mode -->
+            <label class="ecc-sublabel" style="margin-top:8px;">Background Removal</label>
             <div class="ecc-setting-row">
                 <input type="radio" name="ecc_bg_mode" id="ecc_bg_black" value="black"/>
-                <label for="ecc_bg_black">⚫ Black bg + screen blend <small>(no extra API needed)</small></label>
+                <label for="ecc_bg_black">⚫ Black bg + screen blend</label>
             </div>
             <div class="ecc-setting-row">
                 <input type="radio" name="ecc_bg_mode" id="ecc_bg_removebg" value="removebg"/>
-                <label for="ecc_bg_removebg">✂️ remove.bg API <small>(real transparency, any background)</small></label>
+                <label for="ecc_bg_removebg">✂️ remove.bg API (real transparency)</label>
             </div>
+            <small id="ecc_bg_hint" class="ecc-hint ecc-hint-italic"></small>
 
-            <small id="ecc_bg_hint" class="ecc-hint ecc-hint-mode"></small>
-
-            <!-- remove.bg key — shown only when that mode is selected -->
-            <div id="ecc_removebg_row" style="display:none; margin-top:6px;">
-                <label class="ecc-label">remove.bg API Key</label>
-                <input id="ecc_removebg_key" type="password"
-                       placeholder="Paste your remove.bg API key here"
-                       class="ecc-input"/>
-                <small class="ecc-hint">
-                    Free tier at <b>remove.bg</b> gives 50 removals/month — more than enough!
-                    Sign up at remove.bg → API → Copy key.
-                </small>
+            <div id="ecc_removebg_row" style="display:none; margin-top:4px;">
+                <input id="ecc_removebg_key" type="password" placeholder="Paste your remove.bg API key" class="ecc-input"/>
+                <small class="ecc-hint">Free tier: 50 removals/month. Get key at remove.bg → API.</small>
             </div>
 
             <hr class="ecc-divider"/>
 
-            <label class="ecc-label">✨ Cat Theme / Prompt Style</label>
-            <select id="ecc_prompt_select" class="ecc-input ecc-select">
-                <!-- Populated by JS -->
-            </select>
-            <small class="ecc-hint">Pick a theme or let the AI surprise you with 🎲 Random!</small>
+            <!-- ── CATS SECTION ── -->
+            <label class="ecc-label">🐱 Cats (sit on top of chatbox)</label>
 
-            <div class="ecc-setting-row" style="margin-top:10px;">
-                <input id="ecc_generate_btn" class="menu_button" type="submit"
-                       value="✨ Generate Both Cats"/>
+            <label class="ecc-sublabel">Cat Theme</label>
+            <select id="ecc_cat_theme" class="ecc-input ecc-select"></select>
+            <small class="ecc-hint">Cats appear at top-left and top-right, sitting on the edge of your chatbox.</small>
+
+            <div class="ecc-setting-row" style="margin-top:8px;">
+                <input id="ecc_gen_cats_btn" class="menu_button" type="submit" value="🐱 Generate Cats"/>
             </div>
+
+            <div id="ecc_cat_status" class="ecc-status" style="display:none;"></div>
+
+            <div id="ecc_cat_preview" style="display:none;">
+                <div class="ecc-preview-row">
+                    <div style="text-align:center;"><small>Left</small>
+                        <img id="ecc_preview_cat_l" class="ecc-preview-img" src="" alt="left cat"/>
+                    </div>
+                    <div style="text-align:center;"><small>Right (mirrored)</small>
+                        <img id="ecc_preview_cat_r" class="ecc-preview-img ecc-mirror" src="" alt="right cat"/>
+                    </div>
+                </div>
+                <div class="ecc-setting-row">
+                    <input id="ecc_apply_cats_btn" class="menu_button" type="submit" value="✅ Apply Cats"/>
+                </div>
+            </div>
+
+            <hr class="ecc-divider"/>
+
+            <!-- ── CORNER DECORATIONS SECTION ── -->
+            <label class="ecc-label">🌿 Corner Decorations (chat corners)</label>
+
+            <label class="ecc-sublabel">Decoration Style</label>
+            <select id="ecc_decor_theme" class="ecc-input ecc-select"></select>
             <small class="ecc-hint">
-                Generates two cats — appears at the sides of your chatbox, not over the text!
-                Takes ~40–60 seconds. Using remove.bg adds ~10 more seconds.
+                One decoration image is generated, then placed at top-left and mirrored at top-right.
+                Think: notebook corner doodles!
             </small>
 
-            <div id="ecc_status" class="ecc-status" style="display:none;"></div>
+            <div class="ecc-setting-row" style="margin-top:8px;">
+                <input id="ecc_gen_decor_btn" class="menu_button" type="submit" value="🌿 Generate Corner Decoration"/>
+            </div>
 
-            <div id="ecc_preview" class="ecc-preview" style="display:none;">
-                <hr class="ecc-divider"/>
-                <label class="ecc-label">Preview</label>
+            <div id="ecc_decor_status" class="ecc-status" style="display:none;"></div>
+
+            <div id="ecc_decor_preview" style="display:none;">
                 <div class="ecc-preview-row">
-                    <div style="text-align:center;">
-                        <small>Left cat</small>
-                        <img id="ecc_preview_left" class="ecc-preview-img" src="" alt="Left cat"/>
-                    </div>
-                    <div style="text-align:center;">
-                        <small>Right cat (mirrored)</small>
-                        <img id="ecc_preview_right" class="ecc-preview-img ecc-mirror" src="" alt="Right cat"/>
+                    <div style="text-align:center;"><small>Corner (mirrored on right)</small>
+                        <img id="ecc_preview_decor" class="ecc-preview-img ecc-preview-decor" src="" alt="corner decoration"/>
                     </div>
                 </div>
-                <div class="ecc-setting-row" style="margin-top:6px;">
-                    <input id="ecc_apply_btn" class="menu_button" type="submit"
-                           value="✅ Apply to Chatbox"/>
+                <div class="ecc-setting-row">
+                    <input id="ecc_apply_decor_btn" class="menu_button" type="submit" value="✅ Apply Corner Decorations"/>
                 </div>
             </div>
+
+            <hr class="ecc-divider"/>
+
+            <!-- ── TITLE BAR SECTION ── -->
+            <label class="ecc-label">📜 Story Title Bar</label>
+            <div class="ecc-setting-row">
+                <input id="ecc_title_enabled" type="checkbox"/>
+                <label for="ecc_title_enabled">Show title above chatbox</label>
+            </div>
+            <label class="ecc-sublabel" style="margin-top:4px;">Title Text</label>
+            <input id="ecc_title_input" type="text"
+                   placeholder="Enter your story title..."
+                   class="ecc-input"/>
+            <small class="ecc-hint">
+                Appears as a decorated banner above the cats and chatbox.
+                Updates live as you type!
+            </small>
 
         </div>
     </div>
