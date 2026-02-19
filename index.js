@@ -18,12 +18,10 @@ const CAT_PROMPT =
     "elegant whimsical storybook style, pure white background, centered composition, " +
     "high detail, no text, no watermark, no border, no frame";
 
-// ─── Status helper ─────────────────────────────────────────────────────────────
 function setStatus(msg, type = "loading") {
     $("#ecc_status").text(msg).attr("class", `ecc-status ${type}`).show();
 }
 
-// ─── Generate image ────────────────────────────────────────────────────────────
 async function generateImage(apiKey, chuteUrl) {
     const res = await fetch(chuteUrl, {
         method: "POST",
@@ -41,30 +39,34 @@ async function generateImage(apiKey, chuteUrl) {
         throw new Error(`API error ${res.status}: ${err}`);
     }
 
+    const contentType = res.headers.get("content-type") || "";
+
+    // Raw PNG binary response
+    if (contentType.includes("image/")) {
+        const blob = await res.blob();
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error("Failed to read image"));
+            reader.readAsDataURL(blob);
+        });
+    }
+
+    // JSON response — try known formats
     const data = await res.json();
 
-    // Handle diffusion format: { images: ["base64..."] }
-    if (data.images?.length > 0) {
+    if (data.images?.length > 0)
         return `data:image/png;base64,${data.images[0]}`;
-    }
 
-    // Handle OpenAI-compat format: { data: [{ b64_json: "..." }] }
-    if (data.data?.[0]?.b64_json) {
+    if (data.data?.[0]?.b64_json)
         return `data:image/png;base64,${data.data[0].b64_json}`;
-    }
 
-    // Handle URL response: { data: [{ url: "..." }] }
-    if (data.data?.[0]?.url) {
+    if (data.data?.[0]?.url)
         return data.data[0].url;
-    }
 
-    throw new Error(
-        "Unexpected response format from this model. " +
-        "Try a different model URL — look for FLUX or SD models on Chutes."
-    );
+    throw new Error("Unrecognised response format. Try a different model!");
 }
 
-// ─── Decorations ───────────────────────────────────────────────────────────────
 function applyDecorations() {
     const { catImageLeft, catImageRight } = extension_settings[extensionName];
     if (!catImageLeft) {
@@ -99,7 +101,6 @@ function refreshDecorations() {
     if (extension_settings[extensionName].enabled) applyDecorations();
 }
 
-// ─── Event Handlers ────────────────────────────────────────────────────────────
 function onToggleChange(event) {
     const value = Boolean($(event.target).prop("checked"));
     extension_settings[extensionName].enabled = value;
@@ -125,7 +126,7 @@ async function onGenerateClick() {
     if (!chuteUrl) { setStatus("❌ Please enter the Chute endpoint URL!", "error"); return; }
 
     if (!chuteUrl.startsWith("https://")) {
-        setStatus("❌ URL should start with https://  — copy it from the curl example on Chutes.", "error");
+        setStatus("❌ URL should start with https://", "error");
         return;
     }
 
@@ -156,7 +157,6 @@ function onApplyClick() {
     setStatus("✅ Applied! Toggle off/on if cats don't appear right away.", "success");
 }
 
-// ─── Load Settings ─────────────────────────────────────────────────────────────
 function loadSettings() {
     extension_settings[extensionName] = extension_settings[extensionName] || {};
     if (Object.keys(extension_settings[extensionName]).length === 0) {
@@ -177,7 +177,6 @@ function loadSettings() {
     if (s.enabled) applyDecorations();
 }
 
-// ─── Init ──────────────────────────────────────────────────────────────────────
 jQuery(async () => {
     console.log(`[${extensionName}] Loading...`);
     try {
