@@ -1,38 +1,44 @@
-/* Wrapper we inject around the chat area */
 .ecc-decoration-wrapper {
     position: relative;
+    padding-top: 18px;
 }
 
-/* Shared styles for corner cats */
-.ecc-corner {
+.ecc-cat {
     position: absolute;
-    top: 0;
-    width: 90px;
-    height: 90px;
     pointer-events: none;
     z-index: 10;
-    opacity: 0.82;
+    image-rendering: pixelated;
 }
 
-.ecc-corner-left {
-    left: 0;
+/* Large corner cats */
+.ecc-cat-topleft  { top: -8px; left: 4px; }
+.ecc-cat-topright { top: -8px; right: 4px; transform: scaleX(-1); }
+
+/* Smaller inner cats */
+.ecc-cat-inner-left {
+    top: -8px;
+    left: 88px;
+    transform: scale(0.65);
     transform-origin: top left;
 }
-
-.ecc-corner-right {
-    right: 0;
+.ecc-cat-inner-right {
+    top: -8px;
+    right: 88px;
+    transform: scale(0.65) scaleX(-1);
     transform-origin: top right;
-    transform: scaleX(-1); /* Mirror the cat */
 }
 
-/* Top vine border */
-.ecc-top-border {
+/* Paws + hearts row between cats */
+.ecc-top-deco {
     position: absolute;
-    top: 0;
-    left: 80px;
-    right: 80px;
-    height: 28px;
+    top: 2px;
+    left: 160px;
+    right: 160px;
+    height: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
     pointer-events: none;
     z-index: 9;
-    opacity: 0.7;
+    overflow: hidden;
 }
