@@ -7,7 +7,7 @@ const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
 const defaultSettings = {
     enabled: false,
     apiKey: "",
-    selectedChute: null,  // { username, name, tagline }
+    selectedChute: null,
     catImageLeft: "",
     catImageRight: ""
 };
@@ -26,15 +26,7 @@ function clearStatus() {
     $("#ecc_status").hide().text("").attr("class", "ecc-status");
 }
 
-// ─── Slugify chute name for subdomain ──────────────────────────────────────────
-// Chutes subdomains are: {username}-{chute-name-slugified}
-function toSlug(str) {
-    return str.toLowerCase()
-              .replace(/[^a-z0-9]+/g, '-')
-              .replace(/^-+|-+$/g, '');
-}
-
-// ─── Fetch available image/diffusion chutes ───────────────────────────────────
+// ─── Fetch available image/diffusion chutes ────────────────────────────────────
 async function fetchImageChutes(apiKey) {
     const url = "https://api.chutes.ai/chutes/?include_public=true&template=diffusion&limit=50";
     const res = await fetch(url, {
@@ -50,14 +42,18 @@ async function fetchImageChutes(apiKey) {
     }
 
     const data = await res.json();
-    // Response is either an array or { items: [...] }
     return Array.isArray(data) ? data : (data.items || data.chutes || []);
 }
 
 // ─── Generate image via selected chute ────────────────────────────────────────
+// Diffusion template chutes: POST /{username}-{slug}.chutes.ai/generate
+// Returns: { images: ["base64string", ...] }
 async function generateImage(apiKey, chute) {
-    const slug = `${chute.username}-${toSlug(chute.name)}`;
-    const url = `https://${slug}.chutes.ai/v1/images/generations`;
+    // Use the slug field from the API directly — don't reconstruct it
+    const subdomain = `${chute.username}-${chute.slug}`;
+    const url = `https://${subdomain}.chutes.ai/generate`;
+
+    console.log(`[${extensionName}] Calling: ${url}`);
 
     const res = await fetch(url, {
         method: "POST",
@@ -67,10 +63,11 @@ async function generateImage(apiKey, chute) {
         },
         body: JSON.stringify({
             prompt: CAT_PROMPT,
-            n: 1,
+            negative_prompt: "ugly, blurry, low quality, text, watermark, frame, border, signature",
             width: 512,
             height: 512,
-            response_format: "b64_json"
+            num_inference_steps: 30,
+            guidance_scale: 7.5
         })
     });
 
@@ -80,9 +77,24 @@ async function generateImage(apiKey, chute) {
     }
 
     const data = await res.json();
-    const b64 = data.data?.[0]?.b64_json;
-    if (!b64) throw new Error("No image returned — the model may use a different format. Tell me the console error!");
-    return `data:image/png;base64,${b64}`;
+
+    // Handle diffusion template format: { images: ["base64..."] }
+    if (data.images && data.images.length > 0) {
+        return `data:image/png;base64,${data.images[0]}`;
+    }
+
+    // Handle OpenAI-compat format: { data: [{ b64_json: "..." }] }
+    if (data.data && data.data[0]?.b64_json) {
+        return `data:image/png;base64,${data.data[0].b64_json}`;
+    }
+
+    // Handle raw base64 string
+    if (typeof data === "string") {
+        return `data:image/png;base64,${data}`;
+    }
+
+    console.error(`[${extensionName}] Unexpected response shape:`, data);
+    throw new Error("Unexpected response format — check the console (F12) and tell me what you see!");
 }
 
 // ─── Decorations ───────────────────────────────────────────────────────────────
@@ -121,7 +133,7 @@ function refreshDecorations() {
     if (extension_settings[extensionName].enabled) applyDecorations();
 }
 
-// ─── Event Handlers ───────────────────────────────────────────────────────────
+// ─── Event Handlers ────────────────────────────────────────────────────────────
 function onToggleChange(event) {
     const value = Boolean($(event.target).prop("checked"));
     extension_settings[extensionName].enabled = value;
@@ -141,6 +153,7 @@ function onModelSelect() {
         extension_settings[extensionName].selectedChute = chutes[idx];
         saveSettingsDebounced();
         $("#ecc_model_tagline").text(chutes[idx].tagline || "");
+        console.log(`[${extensionName}] Selected chute:`, chutes[idx]);
     }
 }
 
@@ -152,14 +165,14 @@ async function onFetchModelsClick() {
     }
 
     $("#ecc_fetch_models_btn").prop("disabled", true).val("⏳ Loading...");
-    setStatus("🔍 Fetching available image models from Chutes...", "loading");
+    setStatus("🔍 Fetching image models from Chutes...", "loading");
 
     try {
         const chutes = await fetchImageChutes(apiKey);
         window._eccChutes = chutes;
 
         if (!chutes.length) {
-            setStatus("⚠️ No image models found. Try a different API key?", "error");
+            setStatus("⚠️ No diffusion models found. Try refreshing or check your API key.", "error");
             return;
         }
 
@@ -172,7 +185,7 @@ async function onFetchModelsClick() {
         // Restore previously selected if any
         const saved = extension_settings[extensionName].selectedChute;
         if (saved) {
-            const match = chutes.findIndex(c => c.name === saved.name && c.username === saved.username);
+            const match = chutes.findIndex(c => c.slug === saved.slug && c.username === saved.username);
             if (match >= 0) {
                 select.val(match);
                 $("#ecc_model_tagline").text(chutes[match].tagline || "");
@@ -191,14 +204,14 @@ async function onFetchModelsClick() {
 
 async function onGenerateClick() {
     const apiKey = extension_settings[extensionName].apiKey;
-    const chute = extension_settings[extensionName].selectedChute;
+    const chute  = extension_settings[extensionName].selectedChute;
 
     if (!apiKey) { setStatus("❌ Please enter your API key!", "error"); return; }
     if (!chute)  { setStatus("❌ Please select a model first!", "error"); return; }
 
     $("#ecc_generate_btn").prop("disabled", true).val("⏳ Generating...");
     $("#ecc_preview").hide();
-    setStatus(`🎨 Generating watercolor cat using "${chute.name}"... this takes ~20–30 seconds 🐱`, "loading");
+    setStatus(`🎨 Generating watercolor cat using "${chute.name}"... ~20–30 seconds 🐱`, "loading");
 
     try {
         const imageUrl = await generateImage(apiKey, chute);
