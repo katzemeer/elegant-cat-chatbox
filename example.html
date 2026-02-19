@@ -14,35 +14,39 @@
             <hr class="ecc-divider"/>
 
             <label class="ecc-label">Chutes API Key</label>
-            <div class="ecc-key-row">
-                <input id="ecc_api_key" type="password"
-                       placeholder="Paste your Chutes API key here"
-                       class="ecc-input"/>
-            </div>
-            <small class="ecc-hint">Your key is saved locally in SillyTavern settings only.</small>
-
-            <hr class="ecc-divider"/>
-
-            <label class="ecc-label">Generate New Cats</label>
-            <small class="ecc-hint">
-                This will call the Chutes API (FLUX.1-dev) to generate fresh
-                watercolor cats for your chatbox corners. Takes ~15–30 seconds.
-            </small>
+            <input id="ecc_api_key" type="password"
+                   placeholder="Paste your Chutes API key here"
+                   class="ecc-input"/>
+            <small class="ecc-hint">Saved locally in SillyTavern only. Never shared.</small>
 
             <div class="ecc-setting-row" style="margin-top:8px;">
-                <input id="ecc_generate_btn" class="menu_button" type="submit" value="✨ Generate Cats"/>
+                <input id="ecc_fetch_models_btn" class="menu_button" type="submit" value="🔍 Load Image Models"/>
+            </div>
+
+            <div id="ecc_model_section" style="display:none; margin-top:8px;">
+                <hr class="ecc-divider"/>
+                <label class="ecc-label">Select Image Model</label>
+                <select id="ecc_model_select" class="ecc-input">
+                    <option value="">-- Choose a model --</option>
+                </select>
+                <small id="ecc_model_tagline" class="ecc-hint" style="margin-top:4px;"></small>
+
+                <div class="ecc-setting-row" style="margin-top:8px;">
+                    <input id="ecc_generate_btn" class="menu_button" type="submit" value="✨ Generate Cats"/>
+                </div>
             </div>
 
             <div id="ecc_status" class="ecc-status" style="display:none;"></div>
 
             <div id="ecc_preview" class="ecc-preview" style="display:none;">
+                <hr class="ecc-divider"/>
                 <label class="ecc-label">Preview</label>
                 <div class="ecc-preview-row">
-                    <div>
+                    <div style="text-align:center;">
                         <small>Left corner</small>
                         <img id="ecc_preview_left" class="ecc-preview-img" src="" alt="Left cat"/>
                     </div>
-                    <div>
+                    <div style="text-align:center;">
                         <small>Right corner (mirrored)</small>
                         <img id="ecc_preview_right" class="ecc-preview-img ecc-mirror" src="" alt="Right cat"/>
                     </div>
