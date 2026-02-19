@@ -29,12 +29,24 @@
                 Copy the URL from the curl example on any Chutes image model page.
             </small>
 
+            <hr class="ecc-divider"/>
+
+            <label class="ecc-label">✨ Cat Theme / Prompt Style</label>
+            <select id="ecc_prompt_select" class="ecc-input ecc-select">
+                <!-- Populated by JS -->
+            </select>
+            <small class="ecc-hint">
+                Pick a theme or let the AI surprise you with 🎲 Random!
+                Each theme uses unique creative prompts for left &amp; right cats.
+            </small>
+
             <div class="ecc-setting-row" style="margin-top:10px;">
                 <input id="ecc_generate_btn" class="menu_button" type="submit"
                        value="✨ Generate Both Cats"/>
             </div>
             <small class="ecc-hint">
-                This generates TWO cats (left + right corners) — takes ~40–60 seconds total.
+                Generates TWO cats (left + right corners) — takes ~40–60 seconds total.
+                Cats appear at the <strong>bottom corners</strong> of your screen, not over text!
             </small>
 
             <div id="ecc_status" class="ecc-status" style="display:none;"></div>
