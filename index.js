@@ -3,139 +3,170 @@ import { saveSettingsDebounced } from "../../../../script.js";
 
 const extensionName = "elegant-cat-chatbox";
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
+const defaultSettings = { enabled: false };
 
-const defaultSettings = {
-    enabled: false
-};
+// ─── Pixel Cat SVG Generator ─────────────────────────────────────────────────
+// Each "pixel" is an SVG rect. Body = main fur color, stripe = tabby stripe,
+// eye = iris color, hasStripes = tabby markings, patches = extra overlay rects
+function makePixelCat(body, stripe, eye, hasStripes = true, patches = '') {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 92" width="80" height="92">
+        <!-- Left ear -->
+        <rect x="8"  y="0"  width="16" height="4"  fill="#1a1208"/>
+        <rect x="8"  y="4"  width="16" height="10" fill="${body}"/>
+        <rect x="10" y="6"  width="12" height="8"  fill="#ffd4dc"/>
+        <!-- Right ear -->
+        <rect x="56" y="0"  width="16" height="4"  fill="#1a1208"/>
+        <rect x="56" y="4"  width="16" height="10" fill="${body}"/>
+        <rect x="58" y="6"  width="12" height="8"  fill="#ffd4dc"/>
+        <!-- Head outline + fill -->
+        <rect x="4"  y="8"  width="72" height="46" fill="#1a1208"/>
+        <rect x="8"  y="12" width="64" height="38" fill="${body}"/>
+        ${hasStripes ? `
+        <rect x="30" y="12" width="6" height="16" fill="${stripe}"/>
+        <rect x="44" y="12" width="6" height="16" fill="${stripe}"/>` : ''}
+        <!-- Eyes (left) -->
+        <rect x="13" y="22" width="18" height="14" fill="#1a1208"/>
+        <rect x="15" y="24" width="14" height="10" fill="${eye}"/>
+        <rect x="15" y="24" width="6"  height="5"  fill="white"/>
+        <!-- Eyes (right) -->
+        <rect x="49" y="22" width="18" height="14" fill="#1a1208"/>
+        <rect x="51" y="24" width="14" height="10" fill="${eye}"/>
+        <rect x="53" y="24" width="6"  height="5"  fill="white"/>
+        <!-- Pink cheeks -->
+        <rect x="8"  y="33" width="12" height="9" fill="#ffb8c8" opacity="0.85"/>
+        <rect x="60" y="33" width="12" height="9" fill="#ffb8c8" opacity="0.85"/>
+        <!-- Nose -->
+        <rect x="33" y="30" width="14" height="10" fill="#e87090"/>
+        <!-- Mouth marks -->
+        <rect x="26" y="42" width="8" height="4" fill="#1a1208"/>
+        <rect x="46" y="42" width="8" height="4" fill="#1a1208"/>
+        <!-- Whiskers -->
+        <rect x="0"  y="34" width="11" height="2" fill="#1a1208"/>
+        <rect x="0"  y="39" width="11" height="2" fill="#1a1208"/>
+        <rect x="69" y="34" width="11" height="2" fill="#1a1208"/>
+        <rect x="69" y="39" width="11" height="2" fill="#1a1208"/>
+        ${patches}
+        <!-- Body outline + fill -->
+        <rect x="8"  y="54" width="64" height="32" fill="#1a1208"/>
+        <rect x="12" y="56" width="56" height="26" fill="${body}"/>
+        ${hasStripes ? `
+        <rect x="12" y="64" width="56" height="4" fill="${stripe}"/>
+        <rect x="12" y="72" width="56" height="4" fill="${stripe}"/>` : ''}
+        <!-- Left arm -->
+        <rect x="0"  y="56" width="14" height="18" fill="${body}"/>
+        <rect x="0"  y="72" width="16" height="6"  fill="#1a1208"/>
+        <!-- Right arm -->
+        <rect x="66" y="56" width="14" height="18" fill="${body}"/>
+        <rect x="64" y="72" width="16" height="6"  fill="#1a1208"/>
+        <!-- Legs -->
+        <rect x="14" y="84" width="20" height="8" fill="#1a1208"/>
+        <rect x="16" y="84" width="16" height="6" fill="${body}"/>
+        <rect x="46" y="84" width="20" height="8" fill="#1a1208"/>
+        <rect x="48" y="84" width="16" height="6" fill="${body}"/>
+        <!-- Tail -->
+        <rect x="68" y="58" width="8"  height="18" fill="${body}"/>
+        <rect x="58" y="74" width="18" height="8"  fill="${body}"/>
+        <rect x="58" y="80" width="20" height="4"  fill="#1a1208"/>
+    </svg>`;
+}
 
-// SVG: Elegant sitting cat silhouette with a small botanical sprig
-const catSVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="90" height="90">
-  <!-- Botanical leaves behind the cat -->
-  <g fill="none" stroke="#7a9e7e" stroke-width="1.2" opacity="0.9">
-    <path d="M10,80 Q5,60 20,50 Q15,65 10,80Z" fill="#a8c5a0"/>
-    <path d="M8,78 Q2,55 18,48"/>
-    <path d="M18,75 Q30,55 45,60 Q32,68 18,75Z" fill="#b8d4b0"/>
-    <path d="M20,73 Q33,57 46,61"/>
-    <path d="M5,85 Q10,75 22,78 Q14,82 5,85Z" fill="#a8c5a0"/>
-  </g>
+// ─── Cat Variants ─────────────────────────────────────────────────────────────
+const catOrange = makePixelCat('#e8903c', '#c06818', '#4a7c5a', true);
 
-  <!-- Cat body -->
-  <ellipse cx="54" cy="72" rx="22" ry="18" fill="#d4c5a9"/>
-  
-  <!-- Cat head -->
-  <circle cx="54" cy="46" r="16" fill="#d4c5a9"/>
-  
-  <!-- Left ear -->
-  <polygon points="41,36 38,22 50,32" fill="#d4c5a9"/>
-  <polygon points="42,34 40,25 49,32" fill="#e8b4b8" opacity="0.6"/>
-  
-  <!-- Right ear -->
-  <polygon points="67,36 70,22 58,32" fill="#d4c5a9"/>
-  <polygon points="66,34 68,25 59,32" fill="#e8b4b8" opacity="0.6"/>
-  
-  <!-- Eyes -->
-  <ellipse cx="47" cy="45" rx="3.5" ry="4" fill="#5a4a3a"/>
-  <ellipse cx="61" cy="45" rx="3.5" ry="4" fill="#5a4a3a"/>
-  <circle cx="48" cy="44" r="1" fill="white"/>
-  <circle cx="62" cy="44" r="1" fill="white"/>
-  
-  <!-- Nose -->
-  <polygon points="54,51 52,53 56,53" fill="#c4a0a0"/>
-  
-  <!-- Mouth -->
-  <path d="M52,53 Q50,56 48,55" stroke="#9a7a7a" stroke-width="0.8" fill="none"/>
-  <path d="M56,53 Q58,56 60,55" stroke="#9a7a7a" stroke-width="0.8" fill="none"/>
-  
-  <!-- Whiskers -->
-  <line x1="32" y1="50" x2="46" y2="52" stroke="#9a8a7a" stroke-width="0.7" opacity="0.8"/>
-  <line x1="32" y1="53" x2="46" y2="53" stroke="#9a8a7a" stroke-width="0.7" opacity="0.8"/>
-  <line x1="62" y1="52" x2="76" y2="50" stroke="#9a8a7a" stroke-width="0.7" opacity="0.8"/>
-  <line x1="62" y1="53" x2="76" y2="53" stroke="#9a8a7a" stroke-width="0.7" opacity="0.8"/>
-  
-  <!-- Tail curling around -->
-  <path d="M32,85 Q20,90 22,78 Q24,70 35,72" 
-        stroke="#c4b090" stroke-width="5" fill="none" stroke-linecap="round"/>
-  
-  <!-- Paws -->
-  <ellipse cx="44" cy="88" rx="8" ry="5" fill="#c8b898"/>
-  <ellipse cx="64" cy="88" rx="8" ry="5" fill="#c8b898"/>
+const catGray   = makePixelCat('#9898aa', '#606272', '#4a6c8a', false);
 
-  <!-- Small gold accent dots -->
-  <circle cx="54" cy="30" r="1.5" fill="#c9a84c" opacity="0.7"/>
-  <circle cx="48" cy="28" r="1" fill="#c9a84c" opacity="0.5"/>
-  <circle cx="60" cy="28" r="1" fill="#c9a84c" opacity="0.5"/>
-</svg>`;
+// Black & white: white base + black head patch
+const catBnW    = makePixelCat('#e8e4dc', '#e8e4dc', '#2a2030', false,
+    `<rect x="8"  y="12" width="36" height="22" fill="#222222"/>
+     <rect x="10" y="14" width="32" height="18" fill="#333333"/>
+     <rect x="15" y="24" width="14" height="10" fill="#2a2030"/>
+     <rect x="15" y="24" width="6"  height="5"  fill="white"/>`
+);
 
-// SVG: Delicate repeating vine for the top border
-const vineSVG = `
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 28" preserveAspectRatio="xMidYMid slice"
-     width="100%" height="28">
-  <g fill="none" stroke="#7a9e7e" stroke-width="1.1">
-    <!-- Main vine stem -->
-    <path d="M0,14 Q50,6 100,14 Q150,22 200,14 Q250,6 300,14 Q350,22 400,14" 
-          stroke="#8aae8a" stroke-width="1.4"/>
-    
-    <!-- Leaves along the vine -->
-    <path d="M25,14 Q22,6 30,4 Q28,10 25,14Z" fill="#a8c5a0" stroke="none"/>
-    <path d="M75,14 Q78,6 70,4 Q72,10 75,14Z" fill="#a8c5a0" stroke="none"/>
-    <path d="M100,14 Q97,4 106,2 Q104,9 100,14Z" fill="#b8d4b0" stroke="none"/>
-    <path d="M125,14 Q128,22 120,24 Q122,18 125,14Z" fill="#a8c5a0" stroke="none"/>
-    <path d="M175,14 Q172,6 180,4 Q178,10 175,14Z" fill="#a8c5a0" stroke="none"/>
-    <path d="M200,14 Q197,22 206,24 Q204,18 200,14Z" fill="#b8d4b0" stroke="none"/>
-    <path d="M225,14 Q228,6 220,4 Q222,10 225,14Z" fill="#a8c5a0" stroke="none"/>
-    <path d="M275,14 Q272,22 280,24 Q278,18 275,14Z" fill="#a8c5a0" stroke="none"/>
-    <path d="M300,14 Q297,6 306,2 Q304,9 300,14Z" fill="#b8d4b0" stroke="none"/>
-    <path d="M325,14 Q328,22 320,24 Q322,18 325,14Z" fill="#a8c5a0" stroke="none"/>
-    <path d="M375,14 Q372,6 380,4 Q378,10 375,14Z" fill="#a8c5a0" stroke="none"/>
+// Calico: white base + orange + black patches
+const catCalico = makePixelCat('#e8e4dc', '#e8e4dc', '#2a2030', false,
+    `<rect x="8"  y="12" width="20" height="18" fill="#e8903c"/>
+     <rect x="50" y="20" width="22" height="14" fill="#222222"/>
+     <rect x="12" y="56" width="24" height="14" fill="#e8903c"/>
+     <rect x="40" y="60" width="20" height="18" fill="#222222"/>
+     <rect x="49" y="22" width="18" height="14" fill="#2a2030"/>
+     <rect x="51" y="24" width="14" height="10" fill="#9090a0"/>
+     <rect x="53" y="24" width="6"  height="5"  fill="white"/>`
+);
 
-    <!-- Small gold berry accents -->
-  </g>
-  <circle cx="50" cy="10" r="2" fill="#c9a84c" opacity="0.6"/>
-  <circle cx="150" cy="18" r="2" fill="#c9a84c" opacity="0.6"/>
-  <circle cx="250" cy="10" r="2" fill="#c9a84c" opacity="0.6"/>
-  <circle cx="350" cy="18" r="2" fill="#c9a84c" opacity="0.6"/>
-</svg>`;
+// ─── Tiny decorations (paws + hearts) ────────────────────────────────────────
+function makePaw(color = '#ffb8c8', size = 20) {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" width="${size}" height="${size}">
+        <rect x="7"  y="11" width="8" height="8" fill="${color}"/>
+        <rect x="6"  y="12" width="10" height="7" fill="${color}"/>
+        <rect x="2"  y="5"  width="5" height="5" fill="${color}"/>
+        <rect x="9"  y="3"  width="5" height="5" fill="${color}"/>
+        <rect x="16" y="5"  width="4" height="5" fill="${color}"/>
+    </svg>`;
+}
 
+function makeHeart(color = '#ffb8c8', size = 16) {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 14" width="${size}" height="${size}">
+        <rect x="1" y="3" width="4" height="5" fill="${color}"/>
+        <rect x="5" y="1" width="3" height="2" fill="${color}"/>
+        <rect x="8" y="1" width="3" height="2" fill="${color}"/>
+        <rect x="11" y="3" width="4" height="5" fill="${color}"/>
+        <rect x="1" y="7" width="14" height="4" fill="${color}"/>
+        <rect x="3" y="11" width="10" height="2" fill="${color}"/>
+        <rect x="5" y="13" width="6"  height="1" fill="${color}"/>
+    </svg>`;
+}
+
+const topDeco = [
+    makePaw('#ffb8c8', 18),
+    makeHeart('#ffb8c8', 14),
+    makePaw('#e8c0b0', 16),
+    makeHeart('#ffd0b8', 13),
+    makePaw('#ffb8c8', 18),
+    makeHeart('#ffb8c8', 14),
+    makePaw('#e8c0b0', 16),
+    makeHeart('#ffd0b8', 13),
+    makePaw('#ffb8c8', 18),
+    makeHeart('#ffb8c8', 14),
+].join('');
+
+// ─── Apply / Remove ───────────────────────────────────────────────────────────
 function applyDecorations() {
-    // Find the chat area - this is the main chat container in SillyTavern
     const chatTarget = $("#chat");
     if (!chatTarget.length) {
-        console.warn(`[${extensionName}] Could not find #chat element`);
+        console.warn(`[${extensionName}] ⚠️ Could not find #chat — open F12 and tell me what wraps your chat messages!`);
         return;
     }
-
-    // Avoid double-wrapping
     if (chatTarget.parent().hasClass("ecc-decoration-wrapper")) return;
 
     chatTarget.wrap('<div class="ecc-decoration-wrapper"></div>');
-
     const wrapper = chatTarget.parent();
+
     wrapper.prepend(`
-        <div class="ecc-corner ecc-corner-left">${catSVG}</div>
-        <div class="ecc-corner ecc-corner-right">${catSVG}</div>
-        <div class="ecc-top-border">${vineSVG}</div>
+        <div class="ecc-cat ecc-cat-topleft">${catOrange}</div>
+        <div class="ecc-cat ecc-cat-topright">${catGray}</div>
+        <div class="ecc-cat ecc-cat-inner-left">${catBnW}</div>
+        <div class="ecc-cat ecc-cat-inner-right">${catCalico}</div>
+        <div class="ecc-top-deco">${topDeco}</div>
     `);
 
-    console.log(`[${extensionName}] ✅ Decorations applied`);
+    console.log(`[${extensionName}] ✅ Pixel cats deployed!`);
 }
 
 function removeDecorations() {
-    const wrapper = $("#chat").parent();
-    if (!wrapper.hasClass("ecc-decoration-wrapper")) return;
-
-    $(".ecc-corner, .ecc-top-border").remove();
-    $("#chat").unwrap();
-
+    const chat = $("#chat");
+    if (!chat.parent().hasClass("ecc-decoration-wrapper")) return;
+    $(".ecc-cat, .ecc-top-deco").remove();
+    chat.unwrap();
     console.log(`[${extensionName}] Decorations removed`);
 }
 
+// ─── Settings ─────────────────────────────────────────────────────────────────
 function loadSettings() {
     extension_settings[extensionName] = extension_settings[extensionName] || {};
     if (Object.keys(extension_settings[extensionName]).length === 0) {
         Object.assign(extension_settings[extensionName], defaultSettings);
     }
-
     const enabled = extension_settings[extensionName].enabled;
     $("#ecc_enabled").prop("checked", enabled);
     if (enabled) applyDecorations();
@@ -145,28 +176,18 @@ function onToggleChange(event) {
     const value = Boolean($(event.target).prop("checked"));
     extension_settings[extensionName].enabled = value;
     saveSettingsDebounced();
-
-    if (value) {
-        applyDecorations();
-    } else {
-        removeDecorations();
-    }
-
-    console.log(`[${extensionName}] Decorations enabled:`, value);
+    value ? applyDecorations() : removeDecorations();
 }
 
 jQuery(async () => {
     console.log(`[${extensionName}] Loading...`);
-
     try {
         const settingsHtml = await $.get(`${extensionFolderPath}/example.html`);
         $("#extensions_settings2").append(settingsHtml);
-
         $("#ecc_enabled").on("input", onToggleChange);
         loadSettings();
-
-        console.log(`[${extensionName}] ✅ Loaded successfully`);
+        console.log(`[${extensionName}] ✅ Loaded`);
     } catch (error) {
-        console.error(`[${extensionName}] ❌ Failed to load:`, error);
+        console.error(`[${extensionName}] ❌ Failed:`, error);
     }
 });
