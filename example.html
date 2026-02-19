@@ -16,10 +16,10 @@
             <!-- API -->
             <label class="ecc-label">⚙️ API Settings</label>
             <input id="ecc_api_key" type="password" placeholder="Chutes API key" class="ecc-input" style="margin-bottom:5px;"/>
-            <input id="ecc_chute_url" type="text"   placeholder="Chute endpoint URL (https://...)" class="ecc-input"/>
+            <input id="ecc_chute_url" type="text" placeholder="Chute endpoint URL (https://...)" class="ecc-input"/>
 
             <div class="ecc-setting-row" style="margin-top:7px;">
-                <input type="radio" name="ecc_bg_mode" id="ecc_bg_black"    value="black"/>
+                <input type="radio" name="ecc_bg_mode" id="ecc_bg_black" value="black"/>
                 <label for="ecc_bg_black">⚫ Black bg + screen blend</label>
             </div>
             <div class="ecc-setting-row">
@@ -27,7 +27,6 @@
                 <label for="ecc_bg_removebg">✂️ remove.bg (real transparency)</label>
             </div>
             <small id="ecc_bg_hint" class="ecc-hint ecc-hint-italic"></small>
-
             <div id="ecc_removebg_row" style="display:none; margin-top:4px;">
                 <input id="ecc_removebg_key" type="password" placeholder="remove.bg API key" class="ecc-input"/>
                 <small class="ecc-hint">Free tier: 50 removals/month at remove.bg → API.</small>
@@ -38,14 +37,11 @@
             <!-- Cats -->
             <label class="ecc-label">🐱 Cats</label>
             <select id="ecc_cat_theme" class="ecc-input ecc-select"></select>
-            <small class="ecc-hint">Cats sit on top of the chatbox corners.</small>
-
+            <small class="ecc-hint">Cats sit on the top corners of your chatbox.</small>
             <div class="ecc-setting-row" style="margin-top:8px;">
                 <input id="ecc_gen_cats_btn" class="menu_button" type="submit" value="🐱 Generate Cats"/>
             </div>
-
             <div id="ecc_status" class="ecc-status" style="display:none;"></div>
-
             <div id="ecc_cat_preview" style="display:none; margin-top:6px;">
                 <div class="ecc-preview-row">
                     <div style="text-align:center;"><small>Left</small>
@@ -65,10 +61,7 @@
             <!-- Border -->
             <label class="ecc-label">🌿 Top Border Style</label>
             <select id="ecc_border_style" class="ecc-input ecc-select"></select>
-            <small class="ecc-hint">
-                Decorative border along the top of your chatbox, sitting between the cats.
-                Changes apply instantly — no generation needed!
-            </small>
+            <small class="ecc-hint">Changes apply instantly — no generation needed!</small>
 
             <hr class="ecc-divider"/>
 
@@ -78,9 +71,28 @@
                 <input id="ecc_title_enabled" type="checkbox"/>
                 <label for="ecc_title_enabled">Show title above chatbox</label>
             </div>
+
             <input id="ecc_title_input" type="text" placeholder="Your story title..."
-                   class="ecc-input" style="margin-top:4px;"/>
-            <small class="ecc-hint">Big fancy serif title. Updates live as you type!</small>
+                   class="ecc-input" style="margin-top:4px; margin-bottom:8px;"/>
+
+            <!-- Font picker -->
+            <label class="ecc-sublabel">Font</label>
+            <select id="ecc_title_font" class="ecc-input ecc-select" style="margin-bottom:8px;"></select>
+
+            <!-- Size slider -->
+            <label class="ecc-sublabel">
+                Size — <span id="ecc_size_label" class="ecc-size-value">22px</span>
+            </label>
+            <input id="ecc_title_size" type="range" min="14" max="72" step="1" value="22" class="ecc-slider"/>
+            <div class="ecc-size-hints">
+                <span>Small</span><span>Medium</span><span>Big</span><span>Huge</span>
+            </div>
+
+            <!-- Live preview -->
+            <div class="ecc-font-preview-box">
+                <div id="ecc_font_preview" class="ecc-font-preview-text">Your Story</div>
+            </div>
+            <small class="ecc-hint">👆 Live preview — updates as you change font and size!</small>
 
         </div>
     </div>
