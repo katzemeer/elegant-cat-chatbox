@@ -15,35 +15,113 @@ const defaultSettings = {
     removebgKey: "",
     titleText: "",
     titleEnabled: true,
-    borderStyle: "botanical"
+    titleFont: "Cinzel Decorative",
+    titleSize: 22,
+    borderStyle: "baroque"
 };
 
+// ─── Font Library ──────────────────────────────────────────────────────────────
+// Grouped by vibe. All from Google Fonts.
+const FONT_GROUPS = [
+    {
+        group: "✨ Fantasy & Engraved",
+        fonts: [
+            { label: "Cinzel Decorative",    value: "Cinzel Decorative",    import: "Cinzel+Decorative:wght@400;700" },
+            { label: "Cinzel",               value: "Cinzel",               import: "Cinzel:wght@400;600;700" },
+            { label: "Metamorphous",         value: "Metamorphous",         import: "Metamorphous" },
+            { label: "Almendra",             value: "Almendra",             import: "Almendra:wght@400;700" },
+            { label: "Almendra Display",     value: "Almendra Display",     import: "Almendra+Display" },
+            { label: "MedievalSharp",        value: "MedievalSharp",        import: "MedievalSharp" },
+            { label: "Philosopher",          value: "Philosopher",          import: "Philosopher:wght@400;700" },
+        ]
+    },
+    {
+        group: "🖋️ Calligraphy & Script",
+        fonts: [
+            { label: "Great Vibes",          value: "Great Vibes",          import: "Great+Vibes" },
+            { label: "Pinyon Script",        value: "Pinyon Script",        import: "Pinyon+Script" },
+            { label: "Alex Brush",           value: "Alex Brush",           import: "Alex+Brush" },
+            { label: "Ruthie",               value: "Ruthie",               import: "Ruthie" },
+            { label: "Italianno",            value: "Italianno",            import: "Italianno" },
+            { label: "Tangerine",            value: "Tangerine",            import: "Tangerine:wght@400;700" },
+            { label: "Dancing Script",       value: "Dancing Script",       import: "Dancing+Script:wght@400;700" },
+            { label: "Pacifico",             value: "Pacifico",             import: "Pacifico" },
+        ]
+    },
+    {
+        group: "📜 Elegant Serif",
+        fonts: [
+            { label: "Cormorant Garamond",   value: "Cormorant Garamond",   import: "Cormorant+Garamond:wght@400;600;700" },
+            { label: "Cormorant Unicase",    value: "Cormorant Unicase",    import: "Cormorant+Unicase:wght@400;700" },
+            { label: "Playfair Display",     value: "Playfair Display",     import: "Playfair+Display:wght@400;700" },
+            { label: "IM Fell English",      value: "IM Fell English",      import: "IM+Fell+English:ital@0;1" },
+            { label: "Libre Baskerville",    value: "Libre Baskerville",    import: "Libre+Baskerville:wght@400;700" },
+            { label: "Crimson Text",         value: "Crimson Text",         import: "Crimson+Text:wght@400;600;700" },
+            { label: "Spectral",             value: "Spectral",             import: "Spectral:wght@400;700" },
+        ]
+    },
+    {
+        group: "🏰 Gothic & Blackletter",
+        fonts: [
+            { label: "UnifrakturMaguntia",   value: "UnifrakturMaguntia",   import: "UnifrakturMaguntia" },
+            { label: "Germania One",         value: "Germania One",         import: "Germania+One" },
+            { label: "Uncial Antiqua",       value: "Uncial Antiqua",       import: "Uncial+Antiqua" },
+        ]
+    },
+    {
+        group: "🌙 Mystical & Unique",
+        fonts: [
+            { label: "Fondamento",           value: "Fondamento",           import: "Fondamento" },
+            { label: "Caesar Dressing",      value: "Caesar Dressing",      import: "Caesar+Dressing" },
+            { label: "Cardo",                value: "Cardo",                import: "Cardo:wght@400;700" },
+            { label: "Martel",               value: "Martel",               import: "Martel:wght@400;700" },
+            { label: "Lora",                 value: "Lora",                 import: "Lora:ital,wght@1,700" },
+        ]
+    }
+];
+
+// Flat list for lookup
+const ALL_FONTS = FONT_GROUPS.flatMap(g => g.fonts);
+
+// Track which fonts have been injected
+const loadedFonts = new Set();
+
+function loadFont(fontValue) {
+    if (loadedFonts.has(fontValue)) return;
+    const def = ALL_FONTS.find(f => f.value === fontValue);
+    if (!def) return;
+    const link = document.createElement("link");
+    link.rel  = "stylesheet";
+    link.href = `https://fonts.googleapis.com/css2?family=${def.import}&display=swap`;
+    document.head.appendChild(link);
+    loadedFonts.add(fontValue);
+}
+
 // ─── Border style definitions ──────────────────────────────────────────────────
-// These are pure CSS/HTML ornamental borders — no AI needed, always look clean.
 const BORDER_STYLES = {
     botanical: {
         label: "🌿 Botanical Vine",
-        render: (w) => `<div class="ecc-border-botanical" style="width:${w}px"></div>`
+        render: () => `<div class="ecc-border-botanical"></div>`
     },
     baroque: {
         label: "🌀 Baroque Scrollwork",
-        render: (w) => `<div class="ecc-border-baroque" style="width:${w}px"><span class="ecc-border-center-ornament">❦</span></div>`
+        render: () => `<div class="ecc-border-baroque"><span class="ecc-border-center-ornament">❦</span></div>`
     },
     stars: {
         label: "✨ Stars & Dots",
-        render: (w) => `<div class="ecc-border-stars" style="width:${w}px"><span class="ecc-border-center-ornament">✦</span></div>`
+        render: () => `<div class="ecc-border-stars"><span class="ecc-border-center-ornament">✦</span></div>`
     },
     elegant: {
         label: "⸻ Double Line",
-        render: (w) => `<div class="ecc-border-elegant" style="width:${w}px"><span class="ecc-border-center-ornament">◆</span></div>`
+        render: () => `<div class="ecc-border-elegant"><span class="ecc-border-center-ornament">◆</span></div>`
     },
     floral: {
         label: "🌸 Floral Chain",
-        render: (w) => `<div class="ecc-border-floral" style="width:${w}px"></div>`
+        render: () => `<div class="ecc-border-floral"></div>`
     },
     gothic: {
         label: "⚜️ Gothic Filigree",
-        render: (w) => `<div class="ecc-border-gothic" style="width:${w}px"><span class="ecc-border-center-ornament">⚜</span></div>`
+        render: () => `<div class="ecc-border-gothic"><span class="ecc-border-center-ornament">⚜</span></div>`
     }
 };
 
@@ -115,13 +193,11 @@ const CAT_THEMES = [
     }
 ];
 
-// ─── Get cat prompts ───────────────────────────────────────────────────────────
 function getCatPrompts() {
     let idx = extension_settings[extensionName].selectedCatTheme ?? 0;
     const suffix = (extension_settings[extensionName].bgMode ?? "black") === "black" ? "_black" : "_white";
     if (idx <= 0) {
         idx = Math.floor(Math.random() * (CAT_THEMES.length - 1)) + 1;
-        console.log(`[${extensionName}] 🎲 Random cat theme: "${CAT_THEMES[idx].label}"`);
     }
     return { left: CAT_THEMES[idx][`left${suffix}`], right: CAT_THEMES[idx][`right${suffix}`], label: CAT_THEMES[idx].label };
 }
@@ -131,7 +207,7 @@ function setStatus(msg, type = "loading") {
     $("#ecc_status").text(msg).attr("class", `ecc-status ${type}`).show();
 }
 
-// ─── Generate image ────────────────────────────────────────────────────────────
+// ─── Generate / remove.bg ──────────────────────────────────────────────────────
 async function generateImage(apiKey, chuteUrl, prompt) {
     const res = await fetch(chuteUrl, {
         method: "POST",
@@ -151,7 +227,6 @@ async function generateImage(apiKey, chuteUrl, prompt) {
     throw new Error("Unrecognised response format!");
 }
 
-// ─── remove.bg ────────────────────────────────────────────────────────────────
 async function removeBackground(imageDataUrl, key) {
     const blob = await (await fetch(imageDataUrl)).blob();
     const fd = new FormData();
@@ -164,31 +239,31 @@ async function removeBackground(imageDataUrl, key) {
 }
 
 // ─── Positioning ──────────────────────────────────────────────────────────────
-const CAT_SIZE    = 115;  // px — cat width/height
-const BORDER_H    = 22;   // px — ornamental border height
-const TITLE_H     = 48;   // px — title bar height
-const GAP         = 0;    // px — gap between layers
+const CAT_SIZE = 115;
+const BORDER_H = 22;
 
 function positionAll() {
     const chat = document.getElementById("chat");
     if (!chat) return;
     const r = chat.getBoundingClientRect();
+    const s = extension_settings[extensionName];
 
-    // Inner width between the two cats for border + title
-    const innerLeft  = r.left + CAT_SIZE;
-    const innerWidth = r.width - CAT_SIZE * 2;
+    const titleSize = s.titleSize ?? 22;
+    // Title height scales with font size — bigger font needs more room
+    const TITLE_H = Math.max(44, titleSize * 2.2);
 
-    // Cats: bottoms touch the top of the chat
-    const catTop = r.top - CAT_SIZE + GAP;
-    $("#ecc_cat_left").css({ left: r.left + "px",            top: catTop + "px", width: CAT_SIZE + "px", height: CAT_SIZE + "px" });
+    // Cats: bottom edge at chat top
+    const catTop = r.top - CAT_SIZE;
+    $("#ecc_cat_left").css({ left: r.left + "px", top: catTop + "px", width: CAT_SIZE + "px", height: CAT_SIZE + "px" });
     $("#ecc_cat_right").css({ left: (r.right - CAT_SIZE) + "px", top: catTop + "px", width: CAT_SIZE + "px", height: CAT_SIZE + "px" });
 
-    // Ornamental border: sits right on the top edge of the chat, between the cats
-    const borderTop = r.top + 2; // 2px inside the chat top edge
-    $("#ecc_top_border").css({ left: innerLeft + "px", top: borderTop + "px", width: innerWidth + "px", height: BORDER_H + "px" });
+    // Border: sits on top edge of chat, between cats
+    const innerLeft  = r.left + CAT_SIZE;
+    const innerWidth = r.width - CAT_SIZE * 2;
+    $("#ecc_top_border").css({ left: innerLeft + "px", top: (r.top + 2) + "px", width: innerWidth + "px", height: BORDER_H + "px" });
 
-    // Title bar: sits above the cats
-    const titleTop = r.top - CAT_SIZE - TITLE_H + GAP;
+    // Title: above the cats
+    const titleTop = r.top - CAT_SIZE - TITLE_H;
     $("#ecc_title_bar").css({ left: r.left + "px", top: titleTop + "px", width: r.width + "px", height: TITLE_H + "px" });
 }
 
@@ -200,26 +275,23 @@ function applyAll() {
 
     const blend = s.bgMode === "black" ? "ecc-blend-screen" : "";
 
-    // Cats
     $("body").append(`
         <img class="ecc-overlay ecc-cat ${blend}" id="ecc_cat_left"  src="${s.catImageLeft}" alt="cat left"/>
         <img class="ecc-overlay ecc-cat ecc-flip ${blend}" id="ecc_cat_right" src="${s.catImageRight || s.catImageLeft}" alt="cat right"/>
     `);
 
-    // Ornamental top border
-    const style = s.borderStyle ?? "botanical";
-    const borderDef = BORDER_STYLES[style] ?? BORDER_STYLES.botanical;
-    const chat = document.getElementById("chat");
-    const innerWidth = chat ? chat.getBoundingClientRect().width - CAT_SIZE * 2 : 200;
-    $("body").append(`<div class="ecc-overlay ecc-top-border" id="ecc_top_border">${borderDef.render(innerWidth)}</div>`);
+    const borderDef = BORDER_STYLES[s.borderStyle ?? "baroque"] ?? BORDER_STYLES.baroque;
+    $("body").append(`<div class="ecc-overlay ecc-top-border" id="ecc_top_border">${borderDef.render()}</div>`);
 
-    // Title bar
     if (s.titleEnabled) {
+        const font    = s.titleFont ?? "Cinzel Decorative";
+        const size    = s.titleSize ?? 22;
+        loadFont(font);
         $("body").append(`
             <div id="ecc_title_bar" class="ecc-overlay ecc-title-bar">
                 <div class="ecc-title-inner">
                     <span class="ecc-title-deco">— ✦ —</span>
-                    <span class="ecc-title-text">${s.titleText || "Your Story"}</span>
+                    <span class="ecc-title-text" style="font-family:'${font}',serif; font-size:${size}px;">${s.titleText || "Your Story"}</span>
                     <span class="ecc-title-deco">— ✦ —</span>
                 </div>
             </div>
@@ -228,7 +300,6 @@ function applyAll() {
 
     positionAll();
     $(window).on("resize.ecc scroll.ecc", positionAll);
-    console.log(`[${extensionName}] ✅ All decorations applied!`);
 }
 
 function removeAll() {
@@ -236,16 +307,25 @@ function removeAll() {
     $(window).off("resize.ecc scroll.ecc");
 }
 
+// ─── Live title update (no full re-render needed) ──────────────────────────────
+function updateTitleElement() {
+    const s    = extension_settings[extensionName];
+    const font = s.titleFont ?? "Cinzel Decorative";
+    const size = s.titleSize ?? 22;
+    loadFont(font);
+    $("#ecc_title_bar .ecc-title-text")
+        .text(s.titleText || "Your Story")
+        .css({ "font-family": `'${font}', serif`, "font-size": size + "px" });
+    positionAll(); // recalc height since size may have changed
+}
+
 // ─── UI helpers ───────────────────────────────────────────────────────────────
 function updateBgModeUI() {
     const mode = extension_settings[extensionName].bgMode ?? "black";
-    if (mode === "removebg") {
-        $("#ecc_removebg_row").show();
-        $("#ecc_bg_hint").text("remove.bg: real PNG transparency — crisp on any background.");
-    } else {
-        $("#ecc_removebg_row").hide();
-        $("#ecc_bg_hint").text("Black bg + screen blend: best for dark UIs.");
-    }
+    $("#ecc_removebg_row").toggle(mode === "removebg");
+    $("#ecc_bg_hint").text(mode === "removebg"
+        ? "remove.bg: real PNG transparency — crisp on any background."
+        : "Black bg + screen blend: best for dark UIs.");
 }
 
 function populateCatDropdown() {
@@ -258,10 +338,24 @@ function populateCatDropdown() {
 function populateBorderDropdown() {
     const $sel = $("#ecc_border_style");
     $sel.empty();
-    Object.entries(BORDER_STYLES).forEach(([key, val]) => {
-        $sel.append(`<option value="${key}">${val.label}</option>`);
+    Object.entries(BORDER_STYLES).forEach(([key, val]) => $sel.append(`<option value="${key}">${val.label}</option>`));
+    $sel.val(extension_settings[extensionName].borderStyle ?? "baroque");
+}
+
+function populateFontDropdown() {
+    const $sel = $("#ecc_title_font");
+    $sel.empty();
+    FONT_GROUPS.forEach(group => {
+        const $grp = $(`<optgroup label="${group.group}"></optgroup>`);
+        group.fonts.forEach(f => $grp.append(`<option value="${f.value}">${f.label}</option>`));
+        $sel.append($grp);
     });
-    $sel.val(extension_settings[extensionName].borderStyle ?? "botanical");
+    $sel.val(extension_settings[extensionName].titleFont ?? "Cinzel Decorative");
+}
+
+function updateSizeLabel() {
+    const size = extension_settings[extensionName].titleSize ?? 22;
+    $("#ecc_size_label").text(size + "px");
 }
 
 // ─── Event Handlers ────────────────────────────────────────────────────────────
@@ -272,21 +366,19 @@ function onToggleChange(e) {
     v ? applyAll() : removeAll();
 }
 
-function onApiKeyChange()      { extension_settings[extensionName].apiKey     = $("#ecc_api_key").val().trim();      saveSettingsDebounced(); }
-function onChuteUrlChange()    { extension_settings[extensionName].chuteUrl   = $("#ecc_chute_url").val().trim();    saveSettingsDebounced(); }
-function onRemoveBgKeyChange() { extension_settings[extensionName].removebgKey= $("#ecc_removebg_key").val().trim(); saveSettingsDebounced(); }
+function onApiKeyChange()      { extension_settings[extensionName].apiKey      = $("#ecc_api_key").val().trim();      saveSettingsDebounced(); }
+function onChuteUrlChange()    { extension_settings[extensionName].chuteUrl    = $("#ecc_chute_url").val().trim();    saveSettingsDebounced(); }
+function onRemoveBgKeyChange() { extension_settings[extensionName].removebgKey = $("#ecc_removebg_key").val().trim(); saveSettingsDebounced(); }
 function onCatThemeChange()    { extension_settings[extensionName].selectedCatTheme = parseInt($("#ecc_cat_theme").val(), 10); saveSettingsDebounced(); }
 
 function onBgModeChange() {
     extension_settings[extensionName].bgMode = $("input[name='ecc_bg_mode']:checked").val();
-    saveSettingsDebounced();
-    updateBgModeUI();
+    saveSettingsDebounced(); updateBgModeUI();
 }
 
 function onBorderStyleChange() {
     extension_settings[extensionName].borderStyle = $("#ecc_border_style").val();
     saveSettingsDebounced();
-    // Re-apply live if enabled
     if (extension_settings[extensionName].enabled) applyAll();
 }
 
@@ -297,12 +389,34 @@ function onTitleToggle(e) {
 }
 
 function onTitleInput() {
-    const val = $("#ecc_title_input").val();
-    extension_settings[extensionName].titleText = val;
+    extension_settings[extensionName].titleText = $("#ecc_title_input").val();
     saveSettingsDebounced();
-    // Live update without full re-render
-    $("#ecc_title_bar .ecc-title-text").text(val || "Your Story");
-    positionAll();
+    updateTitleElement();
+}
+
+function onFontChange() {
+    extension_settings[extensionName].titleFont = $("#ecc_title_font").val();
+    saveSettingsDebounced();
+    // Load font and update preview label
+    loadFont(extension_settings[extensionName].titleFont);
+    updateFontPreview();
+    updateTitleElement();
+}
+
+function onSizeChange() {
+    const size = parseInt($("#ecc_title_size").val(), 10);
+    extension_settings[extensionName].titleSize = size;
+    saveSettingsDebounced();
+    updateSizeLabel();
+    updateTitleElement();
+}
+
+function updateFontPreview() {
+    const font = extension_settings[extensionName].titleFont ?? "Cinzel Decorative";
+    const size = extension_settings[extensionName].titleSize ?? 22;
+    loadFont(font);
+    $("#ecc_font_preview").css({ "font-family": `'${font}', serif`, "font-size": Math.min(size, 28) + "px" })
+                          .text(extension_settings[extensionName].titleText || "Your Story");
 }
 
 async function onGenerateCatsClick() {
@@ -315,7 +429,6 @@ async function onGenerateCatsClick() {
     const { left: pl, right: pr, label } = getCatPrompts();
     $("#ecc_gen_cats_btn").prop("disabled", true).val("⏳ Generating...");
     $("#ecc_cat_preview").hide();
-
     try {
         setStatus(`🎨 [${label}] Cat 1/2... 🐱`, "loading");
         let leftUrl  = await generateImage(s.apiKey, s.chuteUrl, pl);
@@ -353,21 +466,31 @@ function loadSettings() {
         Object.assign(extension_settings[extensionName], defaultSettings);
     }
     const s = extension_settings[extensionName];
-    $("#ecc_enabled").prop("checked",       s.enabled);
-    $("#ecc_api_key").val(                  s.apiKey || "");
-    $("#ecc_chute_url").val(                s.chuteUrl || "");
-    $("#ecc_removebg_key").val(             s.removebgKey || "");
-    $("#ecc_title_enabled").prop("checked", s.titleEnabled ?? true);
-    $("#ecc_title_input").val(              s.titleText || "");
+    $("#ecc_enabled").prop("checked",        s.enabled);
+    $("#ecc_api_key").val(                   s.apiKey || "");
+    $("#ecc_chute_url").val(                 s.chuteUrl || "");
+    $("#ecc_removebg_key").val(              s.removebgKey || "");
+    $("#ecc_title_enabled").prop("checked",  s.titleEnabled ?? true);
+    $("#ecc_title_input").val(               s.titleText || "");
+    $("#ecc_title_size").val(                s.titleSize ?? 22);
     $(`input[name='ecc_bg_mode'][value='${s.bgMode ?? "black"}']`).prop("checked", true);
+
     updateBgModeUI();
     populateCatDropdown();
     populateBorderDropdown();
+    populateFontDropdown();
+    updateSizeLabel();
+
     if (s.catImageLeft) {
         $("#ecc_preview_cat_l").attr("src", s.catImageLeft);
         $("#ecc_preview_cat_r").attr("src", s.catImageRight || s.catImageLeft);
         $("#ecc_cat_preview").show();
     }
+
+    // Preload the saved font
+    loadFont(s.titleFont ?? "Cinzel Decorative");
+    updateFontPreview();
+
     if (s.enabled) applyAll();
 }
 
@@ -389,6 +512,8 @@ jQuery(async () => {
         $("#ecc_apply_btn").on("click",      onApplyClick);
         $("#ecc_title_enabled").on("input",  onTitleToggle);
         $("#ecc_title_input").on("input",    onTitleInput);
+        $("#ecc_title_font").on("change",    onFontChange);
+        $("#ecc_title_size").on("input",     onSizeChange);
 
         loadSettings();
         console.log(`[${extensionName}] ✅ Loaded`);
