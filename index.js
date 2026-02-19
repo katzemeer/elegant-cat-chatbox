@@ -12,16 +12,16 @@ const defaultSettings = {
     catImageRight: ""
 };
 
-// Two different cat prompts inspired by cozy/botanical chibi style
+// Vague, open-ended prompts so the AI has creative freedom
 const PROMPT_LEFT =
-    "A single cute cat sitting upright, surrounded by soft watercolor pink roses and " +
-    "green botanical leaves, chibi illustration style, pastel colors, cozy and elegant, " +
-    "white background, centered, no text, no watermark, no border, high quality";
+    "A cute cat with soft watercolor botanical flowers and leaves, " +
+    "chibi illustration style, pastel colors, white background, " +
+    "no text, no watermark, no border, high quality";
 
 const PROMPT_RIGHT =
-    "A single fluffy cat in a relaxed loaf position, surrounded by soft watercolor " +
-    "wildflowers and botanical sprigs, chibi illustration style, warm pastel tones, " +
-    "cozy cottagecore feel, white background, centered, no text, no watermark, no border, high quality";
+    "A cute cat with soft watercolor wildflowers and botanical sprigs, " +
+    "chibi illustration style, warm pastel tones, white background, " +
+    "no text, no watermark, no border, high quality";
 
 // ─── Status helper ─────────────────────────────────────────────────────────────
 function setStatus(msg, type = "loading") {
@@ -46,18 +46,16 @@ async function generateImage(apiKey, chuteUrl, prompt) {
 
     const contentType = res.headers.get("content-type") || "";
 
-    // Raw image binary
     if (contentType.includes("image/")) {
         const blob = await res.blob();
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload  = () => resolve(reader.result);
-            reader.onerror = () => reject(new Error("Failed to read image blob"));
+            reader.onerror = () => reject(new Error("Failed to read image"));
             reader.readAsDataURL(blob);
         });
     }
 
-    // JSON formats
     const data = await res.json();
 
     if (data.images?.length > 0)
@@ -72,32 +70,21 @@ async function generateImage(apiKey, chuteUrl, prompt) {
     throw new Error("Unrecognised response format — try a different model!");
 }
 
-// ─── Position cats relative to #chat ──────────────────────────────────────────
-function getCatPositions() {
+// ─── Position cats over the chat element ───────────────────────────────────────
+function positionCats() {
     const chat = $("#chat")[0];
-    if (!chat) return null;
+    if (!chat) return;
 
     const rect = chat.getBoundingClientRect();
-    return {
-        top:   Math.max(rect.top, 0),
-        left:  rect.left,
-        right: window.innerWidth - rect.right
-    };
-}
 
-function positionCats() {
-    const pos = getCatPositions();
-    if (!pos) return;
-
-    $(".ecc-cat-img.left").css({
-        top:  pos.top + "px",
-        left: pos.left + "px"
+    $("#ecc_cat_left").css({
+        top:  (rect.top) + "px",
+        left: (rect.left) + "px"
     });
 
-    $(".ecc-cat-img.right").css({
-        top:   pos.top + "px",
-        right: pos.right + "px",
-        left:  "auto"
+    $("#ecc_cat_right").css({
+        top:  (rect.top) + "px",
+        left: (rect.right - 130) + "px"
     });
 }
 
@@ -110,28 +97,23 @@ function applyDecorations() {
         return;
     }
 
-    // Remove any old cats first
     removeDecorations();
 
-    // Append directly to body so they're fixed to the screen
     $("body").append(`
         <img class="ecc-cat-img left"
+             id="ecc_cat_left"
              src="${catImageLeft}"
-             alt="cat left"
-             id="ecc_cat_left"/>
+             alt="cat left"/>
         <img class="ecc-cat-img right"
+             id="ecc_cat_right"
              src="${catImageRight || catImageLeft}"
-             alt="cat right"
-             id="ecc_cat_right"/>
+             alt="cat right"/>
     `);
 
-    // Position them over the chat
     positionCats();
-
-    // Reposition on resize
     $(window).on("resize.ecc", positionCats);
 
-    console.log(`[${extensionName}] ✅ Cats applied and fixed to screen!`);
+    console.log(`[${extensionName}] ✅ Cats applied!`);
 }
 
 function removeDecorations() {
@@ -164,7 +146,7 @@ async function onGenerateClick() {
     if (!apiKey)   { setStatus("❌ Please enter your Chutes API key!", "error"); return; }
     if (!chuteUrl) { setStatus("❌ Please enter the Chute endpoint URL!", "error"); return; }
     if (!chuteUrl.startsWith("https://")) {
-        setStatus("❌ URL should start with https://", "error");
+        setStatus("❌ URL must start with https://", "error");
         return;
     }
 
@@ -172,25 +154,21 @@ async function onGenerateClick() {
     $("#ecc_preview").hide();
 
     try {
-        // Generate left cat
         setStatus("🎨 Generating cat 1 of 2... ~20–30 seconds 🐱", "loading");
-        const leftUrl = await generateImage(apiKey, chuteUrl, PROMPT_LEFT);
+        const leftUrl  = await generateImage(apiKey, chuteUrl, PROMPT_LEFT);
 
-        // Generate right cat
         setStatus("🎨 Generating cat 2 of 2... almost there! 🐱", "loading");
         const rightUrl = await generateImage(apiKey, chuteUrl, PROMPT_RIGHT);
 
-        // Save both
         extension_settings[extensionName].catImageLeft  = leftUrl;
         extension_settings[extensionName].catImageRight = rightUrl;
         saveSettingsDebounced();
 
-        // Show preview
         $("#ecc_preview_left").attr("src", leftUrl);
         $("#ecc_preview_right").attr("src", rightUrl);
         $("#ecc_preview").show();
 
-        setStatus("✅ Both cats generated! Check the preview, then click Apply.", "success");
+        setStatus("✅ Both cats generated! Preview below — click Apply when ready.", "success");
     } catch (err) {
         setStatus(`❌ ${err.message}`, "error");
     } finally {
@@ -200,7 +178,7 @@ async function onGenerateClick() {
 
 function onApplyClick() {
     applyDecorations();
-    setStatus("✅ Cats are now fixed to your screen! They'll stay while you scroll. 🐾", "success");
+    setStatus("✅ Cats fixed to your screen! Menus will appear on top of them. 🐾", "success");
 }
 
 // ─── Load Settings ─────────────────────────────────────────────────────────────
