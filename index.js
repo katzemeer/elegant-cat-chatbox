@@ -32,12 +32,7 @@ async function generateImage(apiKey, chuteUrl) {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            prompt: CAT_PROMPT,
-            negative_prompt: "ugly, blurry, low quality, text, watermark, frame, border",
-            width: 512,
-            height: 512,
-            num_inference_steps: 30,
-            guidance_scale: 7.5
+            prompt: CAT_PROMPT
         })
     });
 
