@@ -1,44 +1,121 @@
+/* ── Wrapper ─────────────────────────────────────────── */
 .ecc-decoration-wrapper {
     position: relative;
-    padding-top: 18px;
+    padding-top: 24px;
 }
 
-.ecc-cat {
+/* ── Corner cats ─────────────────────────────────────── */
+.ecc-cat-img {
     position: absolute;
+    top: -10px;
+    width: 120px;
+    height: 120px;
+    object-fit: contain;
     pointer-events: none;
     z-index: 10;
-    image-rendering: pixelated;
 }
 
-/* Large corner cats */
-.ecc-cat-topleft  { top: -8px; left: 4px; }
-.ecc-cat-topright { top: -8px; right: 4px; transform: scaleX(-1); }
+.ecc-cat-img.left  { left: 0; }
+.ecc-cat-img.right { right: 0; transform: scaleX(-1); }
 
-/* Smaller inner cats */
-.ecc-cat-inner-left {
-    top: -8px;
-    left: 88px;
-    transform: scale(0.65);
-    transform-origin: top left;
-}
-.ecc-cat-inner-right {
-    top: -8px;
-    right: 88px;
-    transform: scale(0.65) scaleX(-1);
-    transform-origin: top right;
-}
-
-/* Paws + hearts row between cats */
-.ecc-top-deco {
-    position: absolute;
-    top: 2px;
-    left: 160px;
-    right: 160px;
-    height: 22px;
+/* ── Settings panel UI ───────────────────────────────── */
+.ecc-setting-row {
     display: flex;
     align-items: center;
-    justify-content: space-around;
-    pointer-events: none;
-    z-index: 9;
-    overflow: hidden;
+    gap: 8px;
+    margin: 6px 0;
+}
+
+.ecc-divider {
+    border: none;
+    border-top: 1px solid rgba(255,255,255,0.1);
+    margin: 10px 0;
+}
+
+.ecc-label {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 4px;
+    font-size: 0.85em;
+    opacity: 0.85;
+}
+
+.ecc-hint {
+    display: block;
+    opacity: 0.6;
+    font-size: 0.78em;
+    margin-bottom: 4px;
+    line-height: 1.4;
+}
+
+.ecc-input {
+    width: 100%;
+    padding: 5px 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(0,0,0,0.3);
+    color: inherit;
+    font-size: 0.85em;
+    box-sizing: border-box;
+}
+
+.ecc-key-row {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+/* ── Status message ──────────────────────────────────── */
+.ecc-status {
+    margin-top: 8px;
+    padding: 8px 10px;
+    border-radius: 6px;
+    font-size: 0.82em;
+    line-height: 1.4;
+}
+
+.ecc-status.loading {
+    background: rgba(100,140,255,0.15);
+    border: 1px solid rgba(100,140,255,0.3);
+    color: #aac0ff;
+}
+
+.ecc-status.success {
+    background: rgba(80,200,120,0.15);
+    border: 1px solid rgba(80,200,120,0.3);
+    color: #90e8a8;
+}
+
+.ecc-status.error {
+    background: rgba(220,80,80,0.15);
+    border: 1px solid rgba(220,80,80,0.3);
+    color: #ff9a9a;
+}
+
+/* ── Preview ─────────────────────────────────────────── */
+.ecc-preview {
+    margin-top: 10px;
+}
+
+.ecc-preview-row {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-top: 6px;
+    text-align: center;
+}
+
+.ecc-preview-img {
+    display: block;
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.15);
+    background: rgba(255,255,255,0.05);
+    margin-top: 4px;
+}
+
+.ecc-mirror {
+    transform: scaleX(-1);
 }
