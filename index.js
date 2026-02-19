@@ -10,13 +10,41 @@ const defaultSettings = {
     chuteUrl: "",
     catImageLeft: "",
     catImageRight: "",
-    decorImageLeft: "",
-    decorImageRight: "",
-    selectedPromptIndex: 0,
+    selectedCatTheme: 0,
     bgMode: "black",
     removebgKey: "",
     titleText: "",
-    titleEnabled: false
+    titleEnabled: true,
+    borderStyle: "botanical"
+};
+
+// ─── Border style definitions ──────────────────────────────────────────────────
+// These are pure CSS/HTML ornamental borders — no AI needed, always look clean.
+const BORDER_STYLES = {
+    botanical: {
+        label: "🌿 Botanical Vine",
+        render: (w) => `<div class="ecc-border-botanical" style="width:${w}px"></div>`
+    },
+    baroque: {
+        label: "🌀 Baroque Scrollwork",
+        render: (w) => `<div class="ecc-border-baroque" style="width:${w}px"><span class="ecc-border-center-ornament">❦</span></div>`
+    },
+    stars: {
+        label: "✨ Stars & Dots",
+        render: (w) => `<div class="ecc-border-stars" style="width:${w}px"><span class="ecc-border-center-ornament">✦</span></div>`
+    },
+    elegant: {
+        label: "⸻ Double Line",
+        render: (w) => `<div class="ecc-border-elegant" style="width:${w}px"><span class="ecc-border-center-ornament">◆</span></div>`
+    },
+    floral: {
+        label: "🌸 Floral Chain",
+        render: (w) => `<div class="ecc-border-floral" style="width:${w}px"></div>`
+    },
+    gothic: {
+        label: "⚜️ Gothic Filigree",
+        render: (w) => `<div class="ecc-border-gothic" style="width:${w}px"><span class="ecc-border-center-ornament">⚜</span></div>`
+    }
 };
 
 // ─── Cat Prompt Themes ─────────────────────────────────────────────────────────
@@ -87,42 +115,7 @@ const CAT_THEMES = [
     }
 ];
 
-// ─── Corner Decoration Prompt Themes ──────────────────────────────────────────
-const DECOR_THEMES = [
-    { label: "🎲 Random!" },
-    {
-        label: "🌿 Botanical Ink",
-        black: "ornamental botanical corner flourish for a book page, delicate hand-drawn ink line art style, thin curling stems with tiny leaves and small flowers radiating from corner, pure solid black background, white ink lines, no fill, elegant doodle style, no text, no watermark",
-        white: "ornamental botanical corner flourish for a book page, delicate hand-drawn ink line art style, thin curling stems with tiny leaves and small flowers radiating from corner, pure solid white background, black ink lines, no fill, elegant doodle style, no text, no watermark"
-    },
-    {
-        label: "🌀 Baroque Scrollwork",
-        black: "baroque ornamental corner decoration, elegant swirling acanthus leaf scrollwork radiating outward from a corner, classical manuscript style, pure solid black background, white fine lines, no text, no watermark",
-        white: "baroque ornamental corner decoration, elegant swirling acanthus leaf scrollwork radiating outward from a corner, classical manuscript style, pure solid white background, black fine lines, no text, no watermark"
-    },
-    {
-        label: "✨ Magic & Stars",
-        black: "ornate magical corner flourish, delicate swirling vines with tiny stars and sparkle dots, fantasy notebook doodle style, pure solid black background, glowing white ink lines, no text, no watermark",
-        white: "ornate magical corner flourish, delicate swirling vines with tiny stars and sparkle dots, fantasy notebook doodle style, pure solid white background, black ink lines, no text, no watermark"
-    },
-    {
-        label: "🌸 Floral Wreath Corner",
-        black: "delicate floral corner border decoration, tiny roses and wildflowers with thin curling stems forming an L-shape corner ornament, watercolor sketch style, pure solid black background, white lines, no text, no watermark",
-        white: "delicate floral corner border decoration, tiny roses and wildflowers with thin curling stems forming an L-shape corner ornament, watercolor sketch style, pure solid white background, black lines, no text, no watermark"
-    },
-    {
-        label: "🍃 Minimalist Leaves",
-        black: "minimalist corner decoration, thin elegant vine with delicate leaves and tiny berries forming a gentle L-shape, clean botanical line art, pure solid black background, white ink lines, simple and refined, no text, no watermark",
-        white: "minimalist corner decoration, thin elegant vine with delicate leaves and tiny berries forming a gentle L-shape, clean botanical line art, pure solid white background, black ink lines, simple and refined, no text, no watermark"
-    },
-    {
-        label: "⚜️ Gothic Filigree",
-        black: "gothic filigree corner ornament, intricate interlacing fine lines with diamond shapes and pointed arches, medieval manuscript border style, pure solid black background, white metallic lines, ornate and detailed, no text, no watermark",
-        white: "gothic filigree corner ornament, intricate interlacing fine lines with diamond shapes and pointed arches, medieval manuscript border style, pure solid white background, black fine lines, ornate and detailed, no text, no watermark"
-    }
-];
-
-// ─── Get prompts ───────────────────────────────────────────────────────────────
+// ─── Get cat prompts ───────────────────────────────────────────────────────────
 function getCatPrompts() {
     let idx = extension_settings[extensionName].selectedCatTheme ?? 0;
     const suffix = (extension_settings[extensionName].bgMode ?? "black") === "black" ? "_black" : "_white";
@@ -133,22 +126,12 @@ function getCatPrompts() {
     return { left: CAT_THEMES[idx][`left${suffix}`], right: CAT_THEMES[idx][`right${suffix}`], label: CAT_THEMES[idx].label };
 }
 
-function getDecorPrompts() {
-    let idx = extension_settings[extensionName].selectedDecorTheme ?? 0;
-    const bgKey = (extension_settings[extensionName].bgMode ?? "black") === "black" ? "black" : "white";
-    if (idx <= 0) {
-        idx = Math.floor(Math.random() * (DECOR_THEMES.length - 1)) + 1;
-        console.log(`[${extensionName}] 🎲 Random decor theme: "${DECOR_THEMES[idx].label}"`);
-    }
-    return { prompt: DECOR_THEMES[idx][bgKey], label: DECOR_THEMES[idx].label };
-}
-
 // ─── Status helper ─────────────────────────────────────────────────────────────
-function setStatus(msg, type = "loading", target = "#ecc_status") {
-    $(target).text(msg).attr("class", `ecc-status ${type}`).show();
+function setStatus(msg, type = "loading") {
+    $("#ecc_status").text(msg).attr("class", `ecc-status ${type}`).show();
 }
 
-// ─── Generate image ─────────────────────────────────────────────────────────────
+// ─── Generate image ────────────────────────────────────────────────────────────
 async function generateImage(apiKey, chuteUrl, prompt) {
     const res = await fetch(chuteUrl, {
         method: "POST",
@@ -181,106 +164,76 @@ async function removeBackground(imageDataUrl, key) {
 }
 
 // ─── Positioning ──────────────────────────────────────────────────────────────
-// All overlays are positioned relative to the #chat bounding rect.
-// Cats sit on TOP of the chat: bottoms touch the top edge of #chat.
-// Corner decorations sit at the top-left and top-right corners of #chat.
-// Title bar sits just above the cats.
+const CAT_SIZE    = 115;  // px — cat width/height
+const BORDER_H    = 22;   // px — ornamental border height
+const TITLE_H     = 48;   // px — title bar height
+const GAP         = 0;    // px — gap between layers
+
 function positionAll() {
     const chat = document.getElementById("chat");
     if (!chat) return;
     const r = chat.getBoundingClientRect();
-    const s = extension_settings[extensionName];
-    const CAT   = 110;  // cat image size px
-    const DECOR = 90;   // corner decor size px
-    const GAP   = 4;    // small gap between cat bottom and chat top
 
-    // Cats: bottom edge sits right on the top of the chat
-    $("#ecc_cat_left").css({
-        left: r.left + "px",
-        top:  (r.top - CAT + GAP) + "px",
-        width: CAT + "px", height: CAT + "px"
-    });
-    $("#ecc_cat_right").css({
-        left: (r.right - CAT) + "px",
-        top:  (r.top - CAT + GAP) + "px",
-        width: CAT + "px", height: CAT + "px"
-    });
+    // Inner width between the two cats for border + title
+    const innerLeft  = r.left + CAT_SIZE;
+    const innerWidth = r.width - CAT_SIZE * 2;
 
-    // Corner decorations: overlay the top corners of the chat
-    $("#ecc_decor_tl").css({
-        left: r.left + "px",
-        top:  r.top + "px",
-        width: DECOR + "px", height: DECOR + "px"
-    });
-    $("#ecc_decor_tr").css({
-        left: (r.right - DECOR) + "px",
-        top:  r.top + "px",
-        width: DECOR + "px", height: DECOR + "px"
-    });
+    // Cats: bottoms touch the top of the chat
+    const catTop = r.top - CAT_SIZE + GAP;
+    $("#ecc_cat_left").css({ left: r.left + "px",            top: catTop + "px", width: CAT_SIZE + "px", height: CAT_SIZE + "px" });
+    $("#ecc_cat_right").css({ left: (r.right - CAT_SIZE) + "px", top: catTop + "px", width: CAT_SIZE + "px", height: CAT_SIZE + "px" });
+
+    // Ornamental border: sits right on the top edge of the chat, between the cats
+    const borderTop = r.top + 2; // 2px inside the chat top edge
+    $("#ecc_top_border").css({ left: innerLeft + "px", top: borderTop + "px", width: innerWidth + "px", height: BORDER_H + "px" });
 
     // Title bar: sits above the cats
-    const titleHeight = 38;
-    const titleTop    = r.top - CAT - titleHeight + GAP;
-    $("#ecc_title_bar").css({
-        left:   r.left + "px",
-        top:    titleTop + "px",
-        width:  r.width + "px",
-        height: titleHeight + "px"
-    });
+    const titleTop = r.top - CAT_SIZE - TITLE_H + GAP;
+    $("#ecc_title_bar").css({ left: r.left + "px", top: titleTop + "px", width: r.width + "px", height: TITLE_H + "px" });
 }
 
 // ─── Apply / Remove ────────────────────────────────────────────────────────────
-function applyDecorations() {
+function applyAll() {
     const s = extension_settings[extensionName];
     if (!s.catImageLeft) { setStatus("⚠️ No cats yet — generate some first!", "error"); return; }
-
-    removeDecorations();
+    removeAll();
 
     const blend = s.bgMode === "black" ? "ecc-blend-screen" : "";
 
     // Cats
     $("body").append(`
-        <img class="ecc-overlay ecc-cat ${blend}" id="ecc_cat_left"  src="${s.catImageLeft}"                    alt="cat left"/>
+        <img class="ecc-overlay ecc-cat ${blend}" id="ecc_cat_left"  src="${s.catImageLeft}" alt="cat left"/>
         <img class="ecc-overlay ecc-cat ecc-flip ${blend}" id="ecc_cat_right" src="${s.catImageRight || s.catImageLeft}" alt="cat right"/>
     `);
 
-    // Corner decorations (only if generated)
-    if (s.decorImageLeft) {
+    // Ornamental top border
+    const style = s.borderStyle ?? "botanical";
+    const borderDef = BORDER_STYLES[style] ?? BORDER_STYLES.botanical;
+    const chat = document.getElementById("chat");
+    const innerWidth = chat ? chat.getBoundingClientRect().width - CAT_SIZE * 2 : 200;
+    $("body").append(`<div class="ecc-overlay ecc-top-border" id="ecc_top_border">${borderDef.render(innerWidth)}</div>`);
+
+    // Title bar
+    if (s.titleEnabled) {
         $("body").append(`
-            <img class="ecc-overlay ecc-decor ${blend}" id="ecc_decor_tl" src="${s.decorImageLeft}" alt="decor top-left"/>
-            <img class="ecc-overlay ecc-decor ecc-decor-flip ${blend}" id="ecc_decor_tr" src="${s.decorImageLeft}" alt="decor top-right"/>
+            <div id="ecc_title_bar" class="ecc-overlay ecc-title-bar">
+                <div class="ecc-title-inner">
+                    <span class="ecc-title-deco">— ✦ —</span>
+                    <span class="ecc-title-text">${s.titleText || "Your Story"}</span>
+                    <span class="ecc-title-deco">— ✦ —</span>
+                </div>
+            </div>
         `);
     }
 
     positionAll();
     $(window).on("resize.ecc scroll.ecc", positionAll);
-}
-
-function applyTitleBar() {
-    const s = extension_settings[extensionName];
-    $("#ecc_title_bar").remove();
-
-    if (!s.titleEnabled) return;
-
-    $("body").append(`
-        <div id="ecc_title_bar" class="ecc-title-bar">
-            <span class="ecc-title-ornament">⸻✦⸻</span>
-            <span class="ecc-title-text">${s.titleText || "Your Story Title"}</span>
-            <span class="ecc-title-ornament">⸻✦⸻</span>
-        </div>
-    `);
-
-    positionAll();
-}
-
-function removeDecorations() {
-    $("#ecc_cat_left, #ecc_cat_right, #ecc_decor_tl, #ecc_decor_tr").remove();
-    $(window).off("resize.ecc scroll.ecc");
+    console.log(`[${extensionName}] ✅ All decorations applied!`);
 }
 
 function removeAll() {
-    removeDecorations();
-    $("#ecc_title_bar").remove();
+    $("#ecc_cat_left, #ecc_cat_right, #ecc_top_border, #ecc_title_bar").remove();
+    $(window).off("resize.ecc scroll.ecc");
 }
 
 // ─── UI helpers ───────────────────────────────────────────────────────────────
@@ -288,21 +241,27 @@ function updateBgModeUI() {
     const mode = extension_settings[extensionName].bgMode ?? "black";
     if (mode === "removebg") {
         $("#ecc_removebg_row").show();
-        $("#ecc_bg_hint").text("remove.bg gives real PNG transparency — crisp on any background.");
+        $("#ecc_bg_hint").text("remove.bg: real PNG transparency — crisp on any background.");
     } else {
         $("#ecc_removebg_row").hide();
-        $("#ecc_bg_hint").text("Black bg + screen blend: black turns transparent. Great for dark UIs!");
+        $("#ecc_bg_hint").text("Black bg + screen blend: best for dark UIs.");
     }
 }
 
-function populateDropdowns() {
-    const $cats   = $("#ecc_cat_theme");
-    const $decors = $("#ecc_decor_theme");
-    $cats.empty();   CAT_THEMES.forEach((t, i)   => $cats.append(`<option value="${i}">${t.label}</option>`));
-    $decors.empty(); DECOR_THEMES.forEach((t, i) => $decors.append(`<option value="${i}">${t.label}</option>`));
-    const s = extension_settings[extensionName];
-    $cats.val(Math.max(0, s.selectedCatTheme ?? 0));
-    $decors.val(Math.max(0, s.selectedDecorTheme ?? 0));
+function populateCatDropdown() {
+    const $sel = $("#ecc_cat_theme");
+    $sel.empty();
+    CAT_THEMES.forEach((t, i) => $sel.append(`<option value="${i}">${t.label}</option>`));
+    $sel.val(Math.max(0, extension_settings[extensionName].selectedCatTheme ?? 0));
+}
+
+function populateBorderDropdown() {
+    const $sel = $("#ecc_border_style");
+    $sel.empty();
+    Object.entries(BORDER_STYLES).forEach(([key, val]) => {
+        $sel.append(`<option value="${key}">${val.label}</option>`);
+    });
+    $sel.val(extension_settings[extensionName].borderStyle ?? "botanical");
 }
 
 // ─── Event Handlers ────────────────────────────────────────────────────────────
@@ -310,14 +269,13 @@ function onToggleChange(e) {
     const v = Boolean($(e.target).prop("checked"));
     extension_settings[extensionName].enabled = v;
     saveSettingsDebounced();
-    if (v) { applyDecorations(); applyTitleBar(); } else { removeAll(); }
+    v ? applyAll() : removeAll();
 }
 
-function onApiKeyChange()     { extension_settings[extensionName].apiKey    = $("#ecc_api_key").val().trim();    saveSettingsDebounced(); }
-function onChuteUrlChange()   { extension_settings[extensionName].chuteUrl  = $("#ecc_chute_url").val().trim();  saveSettingsDebounced(); }
-function onRemoveBgKeyChange(){ extension_settings[extensionName].removebgKey = $("#ecc_removebg_key").val().trim(); saveSettingsDebounced(); }
-function onCatThemeChange()   { extension_settings[extensionName].selectedCatTheme   = parseInt($("#ecc_cat_theme").val(), 10);   saveSettingsDebounced(); }
-function onDecorThemeChange() { extension_settings[extensionName].selectedDecorTheme = parseInt($("#ecc_decor_theme").val(), 10); saveSettingsDebounced(); }
+function onApiKeyChange()      { extension_settings[extensionName].apiKey     = $("#ecc_api_key").val().trim();      saveSettingsDebounced(); }
+function onChuteUrlChange()    { extension_settings[extensionName].chuteUrl   = $("#ecc_chute_url").val().trim();    saveSettingsDebounced(); }
+function onRemoveBgKeyChange() { extension_settings[extensionName].removebgKey= $("#ecc_removebg_key").val().trim(); saveSettingsDebounced(); }
+function onCatThemeChange()    { extension_settings[extensionName].selectedCatTheme = parseInt($("#ecc_cat_theme").val(), 10); saveSettingsDebounced(); }
 
 function onBgModeChange() {
     extension_settings[extensionName].bgMode = $("input[name='ecc_bg_mode']:checked").val();
@@ -325,46 +283,48 @@ function onBgModeChange() {
     updateBgModeUI();
 }
 
+function onBorderStyleChange() {
+    extension_settings[extensionName].borderStyle = $("#ecc_border_style").val();
+    saveSettingsDebounced();
+    // Re-apply live if enabled
+    if (extension_settings[extensionName].enabled) applyAll();
+}
+
 function onTitleToggle(e) {
     extension_settings[extensionName].titleEnabled = Boolean($(e.target).prop("checked"));
     saveSettingsDebounced();
-    applyTitleBar();
+    if (extension_settings[extensionName].enabled) applyAll();
 }
 
 function onTitleInput() {
     const val = $("#ecc_title_input").val();
     extension_settings[extensionName].titleText = val;
     saveSettingsDebounced();
-    // Update live
-    $("#ecc_title_bar .ecc-title-text").text(val || "Your Story Title");
+    // Live update without full re-render
+    $("#ecc_title_bar .ecc-title-text").text(val || "Your Story");
     positionAll();
 }
 
-// Validate API settings, return false if not ready
-function validateApiSettings(statusTarget) {
-    const s = extension_settings[extensionName];
-    if (!s.apiKey)   { setStatus("❌ Please enter your Chutes API key!", "error", statusTarget); return false; }
-    if (!s.chuteUrl) { setStatus("❌ Please enter the Chute endpoint URL!", "error", statusTarget); return false; }
-    if (!s.chuteUrl.startsWith("https://")) { setStatus("❌ URL must start with https://", "error", statusTarget); return false; }
-    if (s.bgMode === "removebg" && !s.removebgKey) { setStatus("❌ Please enter your remove.bg API key!", "error", statusTarget); return false; }
-    return true;
-}
-
 async function onGenerateCatsClick() {
-    if (!validateApiSettings("#ecc_cat_status")) return;
     const s = extension_settings[extensionName];
+    if (!s.apiKey)   { setStatus("❌ Please enter your Chutes API key!", "error"); return; }
+    if (!s.chuteUrl) { setStatus("❌ Please enter the Chute endpoint URL!", "error"); return; }
+    if (!s.chuteUrl.startsWith("https://")) { setStatus("❌ URL must start with https://", "error"); return; }
+    if (s.bgMode === "removebg" && !s.removebgKey) { setStatus("❌ Please enter your remove.bg API key!", "error"); return; }
+
     const { left: pl, right: pr, label } = getCatPrompts();
     $("#ecc_gen_cats_btn").prop("disabled", true).val("⏳ Generating...");
     $("#ecc_cat_preview").hide();
+
     try {
-        setStatus(`🎨 [${label}] Cat 1/2... 🐱`, "loading", "#ecc_cat_status");
+        setStatus(`🎨 [${label}] Cat 1/2... 🐱`, "loading");
         let leftUrl  = await generateImage(s.apiKey, s.chuteUrl, pl);
-        setStatus(`🎨 [${label}] Cat 2/2... almost! 🐱`, "loading", "#ecc_cat_status");
+        setStatus(`🎨 [${label}] Cat 2/2... almost! 🐱`, "loading");
         let rightUrl = await generateImage(s.apiKey, s.chuteUrl, pr);
         if (s.bgMode === "removebg") {
-            setStatus("✂️ Removing bg (1/2)...", "loading", "#ecc_cat_status");
-            leftUrl  = await removeBackground(leftUrl,  s.removebgKey);
-            setStatus("✂️ Removing bg (2/2)...", "loading", "#ecc_cat_status");
+            setStatus("✂️ Removing bg (1/2)...", "loading");
+            leftUrl  = await removeBackground(leftUrl, s.removebgKey);
+            setStatus("✂️ Removing bg (2/2)...", "loading");
             rightUrl = await removeBackground(rightUrl, s.removebgKey);
         }
         extension_settings[extensionName].catImageLeft  = leftUrl;
@@ -373,41 +333,18 @@ async function onGenerateCatsClick() {
         $("#ecc_preview_cat_l").attr("src", leftUrl);
         $("#ecc_preview_cat_r").attr("src", rightUrl);
         $("#ecc_cat_preview").show();
-        setStatus("✅ Cats ready! Click Apply below.", "success", "#ecc_cat_status");
+        setStatus("✅ Cats ready! Click Apply.", "success");
     } catch (err) {
-        setStatus(`❌ ${err.message}`, "error", "#ecc_cat_status");
+        setStatus(`❌ ${err.message}`, "error");
     } finally {
         $("#ecc_gen_cats_btn").prop("disabled", false).val("🐱 Generate Cats");
     }
 }
 
-async function onGenerateDecorClick() {
-    if (!validateApiSettings("#ecc_decor_status")) return;
-    const s = extension_settings[extensionName];
-    const { prompt, label } = getDecorPrompts();
-    $("#ecc_gen_decor_btn").prop("disabled", true).val("⏳ Generating...");
-    $("#ecc_decor_preview").hide();
-    try {
-        setStatus(`🌿 [${label}] Generating corner decoration... ✨`, "loading", "#ecc_decor_status");
-        let decorUrl = await generateImage(s.apiKey, s.chuteUrl, prompt);
-        if (s.bgMode === "removebg") {
-            setStatus("✂️ Removing background...", "loading", "#ecc_decor_status");
-            decorUrl = await removeBackground(decorUrl, s.removebgKey);
-        }
-        extension_settings[extensionName].decorImageLeft = decorUrl;
-        saveSettingsDebounced();
-        $("#ecc_preview_decor").attr("src", decorUrl);
-        $("#ecc_decor_preview").show();
-        setStatus("✅ Decoration ready! Click Apply below.", "success", "#ecc_decor_status");
-    } catch (err) {
-        setStatus(`❌ ${err.message}`, "error", "#ecc_decor_status");
-    } finally {
-        $("#ecc_gen_decor_btn").prop("disabled", false).val("🌿 Generate Corner Decoration");
-    }
+function onApplyClick() {
+    applyAll();
+    setStatus("✅ All decorations applied! 🐾", "success");
 }
-
-function onApplyCatsClick()  { applyDecorations(); setStatus("✅ Applied! Cats are sitting on top of your chat. 🐾", "success", "#ecc_cat_status"); }
-function onApplyDecorClick() { applyDecorations(); setStatus("✅ Applied! Corner decorations in place. ✨", "success", "#ecc_decor_status"); }
 
 // ─── Load Settings ─────────────────────────────────────────────────────────────
 function loadSettings() {
@@ -416,25 +353,22 @@ function loadSettings() {
         Object.assign(extension_settings[extensionName], defaultSettings);
     }
     const s = extension_settings[extensionName];
-    $("#ecc_enabled").prop("checked",      s.enabled);
-    $("#ecc_api_key").val(                 s.apiKey || "");
-    $("#ecc_chute_url").val(               s.chuteUrl || "");
-    $("#ecc_removebg_key").val(            s.removebgKey || "");
-    $("#ecc_title_enabled").prop("checked",s.titleEnabled);
-    $("#ecc_title_input").val(             s.titleText || "");
+    $("#ecc_enabled").prop("checked",       s.enabled);
+    $("#ecc_api_key").val(                  s.apiKey || "");
+    $("#ecc_chute_url").val(                s.chuteUrl || "");
+    $("#ecc_removebg_key").val(             s.removebgKey || "");
+    $("#ecc_title_enabled").prop("checked", s.titleEnabled ?? true);
+    $("#ecc_title_input").val(              s.titleText || "");
     $(`input[name='ecc_bg_mode'][value='${s.bgMode ?? "black"}']`).prop("checked", true);
     updateBgModeUI();
-    populateDropdowns();
+    populateCatDropdown();
+    populateBorderDropdown();
     if (s.catImageLeft) {
         $("#ecc_preview_cat_l").attr("src", s.catImageLeft);
         $("#ecc_preview_cat_r").attr("src", s.catImageRight || s.catImageLeft);
         $("#ecc_cat_preview").show();
     }
-    if (s.decorImageLeft) {
-        $("#ecc_preview_decor").attr("src", s.decorImageLeft);
-        $("#ecc_decor_preview").show();
-    }
-    if (s.enabled) { applyDecorations(); applyTitleBar(); }
+    if (s.enabled) applyAll();
 }
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
@@ -444,19 +378,17 @@ jQuery(async () => {
         const html = await $.get(`${extensionFolderPath}/example.html`);
         $("#extensions_settings2").append(html);
 
-        $("#ecc_enabled").on("input",       onToggleChange);
-        $("#ecc_api_key").on("change",      onApiKeyChange);
-        $("#ecc_chute_url").on("change",    onChuteUrlChange);
-        $("#ecc_removebg_key").on("change", onRemoveBgKeyChange);
+        $("#ecc_enabled").on("input",        onToggleChange);
+        $("#ecc_api_key").on("change",       onApiKeyChange);
+        $("#ecc_chute_url").on("change",     onChuteUrlChange);
+        $("#ecc_removebg_key").on("change",  onRemoveBgKeyChange);
         $("input[name='ecc_bg_mode']").on("change", onBgModeChange);
-        $("#ecc_cat_theme").on("change",    onCatThemeChange);
-        $("#ecc_decor_theme").on("change",  onDecorThemeChange);
-        $("#ecc_gen_cats_btn").on("click",  onGenerateCatsClick);
-        $("#ecc_gen_decor_btn").on("click", onGenerateDecorClick);
-        $("#ecc_apply_cats_btn").on("click",  onApplyCatsClick);
-        $("#ecc_apply_decor_btn").on("click", onApplyDecorClick);
-        $("#ecc_title_enabled").on("input", onTitleToggle);
-        $("#ecc_title_input").on("input",   onTitleInput);
+        $("#ecc_cat_theme").on("change",     onCatThemeChange);
+        $("#ecc_border_style").on("change",  onBorderStyleChange);
+        $("#ecc_gen_cats_btn").on("click",   onGenerateCatsClick);
+        $("#ecc_apply_btn").on("click",      onApplyClick);
+        $("#ecc_title_enabled").on("input",  onTitleToggle);
+        $("#ecc_title_input").on("input",    onTitleInput);
 
         loadSettings();
         console.log(`[${extensionName}] ✅ Loaded`);
