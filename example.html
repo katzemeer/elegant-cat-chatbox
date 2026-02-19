@@ -19,21 +19,19 @@
                    class="ecc-input"/>
             <small class="ecc-hint">Saved locally in SillyTavern only. Never shared.</small>
 
-            <div class="ecc-setting-row" style="margin-top:8px;">
-                <input id="ecc_fetch_models_btn" class="menu_button" type="submit" value="🔍 Load Image Models"/>
-            </div>
+            <hr class="ecc-divider"/>
 
-            <div id="ecc_model_section" style="display:none; margin-top:8px;">
-                <hr class="ecc-divider"/>
-                <label class="ecc-label">Select Image Model</label>
-                <select id="ecc_model_select" class="ecc-input">
-                    <option value="">-- Choose a model --</option>
-                </select>
-                <small id="ecc_model_tagline" class="ecc-hint" style="margin-top:4px;"></small>
+            <label class="ecc-label">Chute Endpoint URL</label>
+            <input id="ecc_chute_url" type="text"
+                   placeholder="e.g. https://chutes-z-image-turbo.chutes.ai/generate"
+                   class="ecc-input"/>
+            <small class="ecc-hint">
+                Go to chutes.ai → pick any image model → copy the URL from the curl example.
+                It looks like: <b>https://username-modelname.chutes.ai/generate</b>
+            </small>
 
-                <div class="ecc-setting-row" style="margin-top:8px;">
-                    <input id="ecc_generate_btn" class="menu_button" type="submit" value="✨ Generate Cats"/>
-                </div>
+            <div class="ecc-setting-row" style="margin-top:10px;">
+                <input id="ecc_generate_btn" class="menu_button" type="submit" value="✨ Generate Cats"/>
             </div>
 
             <div id="ecc_status" class="ecc-status" style="display:none;"></div>
