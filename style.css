@@ -1,1 +1,38 @@
-/* Styles will go here later */
+/* Wrapper we inject around the chat area */
+.ecc-decoration-wrapper {
+    position: relative;
+}
+
+/* Shared styles for corner cats */
+.ecc-corner {
+    position: absolute;
+    top: 0;
+    width: 90px;
+    height: 90px;
+    pointer-events: none;
+    z-index: 10;
+    opacity: 0.82;
+}
+
+.ecc-corner-left {
+    left: 0;
+    transform-origin: top left;
+}
+
+.ecc-corner-right {
+    right: 0;
+    transform-origin: top right;
+    transform: scaleX(-1); /* Mirror the cat */
+}
+
+/* Top vine border */
+.ecc-top-border {
+    position: absolute;
+    top: 0;
+    left: 80px;
+    right: 80px;
+    height: 28px;
+    pointer-events: none;
+    z-index: 9;
+    opacity: 0.7;
+}
