@@ -5,11 +5,53 @@
             <div class="inline-drawer-icon fa-solid fa-circle-chevron-down down"></div>
         </div>
         <div class="inline-drawer-content">
-            <div>
+
+            <div class="ecc-setting-row">
                 <input id="ecc_enabled" type="checkbox" />
                 <label for="ecc_enabled">Enable cat decorations</label>
             </div>
-            <p><small>Toggle this, refresh the page, and check if it remembers your choice.</small></p>
+
+            <hr class="ecc-divider"/>
+
+            <label class="ecc-label">Chutes API Key</label>
+            <div class="ecc-key-row">
+                <input id="ecc_api_key" type="password"
+                       placeholder="Paste your Chutes API key here"
+                       class="ecc-input"/>
+            </div>
+            <small class="ecc-hint">Your key is saved locally in SillyTavern settings only.</small>
+
+            <hr class="ecc-divider"/>
+
+            <label class="ecc-label">Generate New Cats</label>
+            <small class="ecc-hint">
+                This will call the Chutes API (FLUX.1-dev) to generate fresh
+                watercolor cats for your chatbox corners. Takes ~15–30 seconds.
+            </small>
+
+            <div class="ecc-setting-row" style="margin-top:8px;">
+                <input id="ecc_generate_btn" class="menu_button" type="submit" value="✨ Generate Cats"/>
+            </div>
+
+            <div id="ecc_status" class="ecc-status" style="display:none;"></div>
+
+            <div id="ecc_preview" class="ecc-preview" style="display:none;">
+                <label class="ecc-label">Preview</label>
+                <div class="ecc-preview-row">
+                    <div>
+                        <small>Left corner</small>
+                        <img id="ecc_preview_left" class="ecc-preview-img" src="" alt="Left cat"/>
+                    </div>
+                    <div>
+                        <small>Right corner (mirrored)</small>
+                        <img id="ecc_preview_right" class="ecc-preview-img ecc-mirror" src="" alt="Right cat"/>
+                    </div>
+                </div>
+                <div class="ecc-setting-row" style="margin-top:6px;">
+                    <input id="ecc_apply_btn" class="menu_button" type="submit" value="✅ Apply to Chatbox"/>
+                </div>
+            </div>
+
         </div>
     </div>
 </div>
