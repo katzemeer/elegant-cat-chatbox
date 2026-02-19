@@ -1,45 +1,37 @@
-/* ── Fixed corner cats ───────────────────────────── */
-/* Cats sit at BOTTOM CORNERS of the viewport — outside and below the chat text */
+/* ── Cat images — fixed to screen, positioned by JS ─── */
 .ecc-cat-img {
     position: fixed;
-    width: 150px;
-    height: 150px;
+    width: 140px;
+    height: 140px;
     object-fit: contain;
     pointer-events: none;
-    z-index: 50; /* low enough that menus and chat appear on top */
+    z-index: 50;
+    filter: drop-shadow(0px 2px 8px rgba(0,0,0,0.3));
+    animation: ecc-fadein 0.6s ease;
+}
 
-    /* 🔑 KEY FIX: mix-blend-mode multiply makes white backgrounds vanish.
-       White pixels become transparent; the cat illustration shows through cleanly. */
-    mix-blend-mode: multiply;
+/* Right cat is mirrored so both cats face the chat */
+.ecc-cat-flip {
+    transform: scaleX(-1);
+}
 
-    /* Sticker-style drop shadow for depth */
-    filter: drop-shadow(0px 2px 6px rgba(0,0,0,0.25));
-
-    /* Smooth fade-in when applied */
-    animation: ecc-fadein 0.5s ease;
+/* Screen blend mode: makes BLACK pixels transparent.
+   Use this with black-background generated images on dark UIs. */
+.ecc-blend-screen {
+    mix-blend-mode: screen;
 }
 
 @keyframes ecc-fadein {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
 }
 
-/* Left cat: sticks to bottom-left corner */
-.ecc-cat-left {
-    bottom: 0;
-    left: 0;
-    transform-origin: bottom left;
-}
-
-/* Right cat: sticks to bottom-right corner, mirrored */
-.ecc-cat-right {
-    bottom: 0;
-    right: 0;
+/* Right cat needs to keep its flip AND the fade-in plays nice */
+.ecc-cat-flip {
     transform: scaleX(-1);
-    transform-origin: bottom right;
 }
 
-/* ── Settings panel UI ───────────────────────────── */
+/* ── Settings panel ───────────────────────────────── */
 .ecc-setting-row {
     display: flex;
     align-items: center;
@@ -67,6 +59,12 @@
     font-size: 0.78em;
     line-height: 1.4;
     margin-bottom: 4px;
+}
+
+.ecc-hint-mode {
+    margin-top: 4px;
+    opacity: 0.75;
+    font-style: italic;
 }
 
 .ecc-input {
@@ -134,8 +132,6 @@
     border: 1px solid rgba(255,255,255,0.15);
     background: rgba(255,255,255,0.05);
     margin-top: 4px;
-    /* Also apply blend mode in preview so you see how it'll look */
-    mix-blend-mode: multiply;
 }
 
 .ecc-mirror { transform: scaleX(-1); }
