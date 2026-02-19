@@ -12,26 +12,31 @@ const defaultSettings = {
     catImageRight: ""
 };
 
-const CAT_PROMPT =
-    "A single adorable cat sitting gracefully, soft delicate watercolor illustration, " +
-    "pastel pink and sage green botanical flowers and leaves surrounding the cat, " +
-    "elegant whimsical storybook style, pure white background, centered composition, " +
-    "high detail, no text, no watermark, no border, no frame";
+// Two different cat prompts inspired by cozy/botanical chibi style
+const PROMPT_LEFT =
+    "A single cute cat sitting upright, surrounded by soft watercolor pink roses and " +
+    "green botanical leaves, chibi illustration style, pastel colors, cozy and elegant, " +
+    "white background, centered, no text, no watermark, no border, high quality";
 
+const PROMPT_RIGHT =
+    "A single fluffy cat in a relaxed loaf position, surrounded by soft watercolor " +
+    "wildflowers and botanical sprigs, chibi illustration style, warm pastel tones, " +
+    "cozy cottagecore feel, white background, centered, no text, no watermark, no border, high quality";
+
+// ─── Status helper ─────────────────────────────────────────────────────────────
 function setStatus(msg, type = "loading") {
     $("#ecc_status").text(msg).attr("class", `ecc-status ${type}`).show();
 }
 
-async function generateImage(apiKey, chuteUrl) {
+// ─── Generate one image ────────────────────────────────────────────────────────
+async function generateImage(apiKey, chuteUrl, prompt) {
     const res = await fetch(chuteUrl, {
         method: "POST",
         headers: {
             "Authorization": `Bearer ${apiKey}`,
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({
-            prompt: CAT_PROMPT
-        })
+        body: JSON.stringify({ prompt })
     });
 
     if (!res.ok) {
@@ -41,18 +46,18 @@ async function generateImage(apiKey, chuteUrl) {
 
     const contentType = res.headers.get("content-type") || "";
 
-    // Raw PNG binary response
+    // Raw image binary
     if (contentType.includes("image/")) {
         const blob = await res.blob();
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
-            reader.onload = () => resolve(reader.result);
-            reader.onerror = () => reject(new Error("Failed to read image"));
+            reader.onload  = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error("Failed to read image blob"));
             reader.readAsDataURL(blob);
         });
     }
 
-    // JSON response — try known formats
+    // JSON formats
     const data = await res.json();
 
     if (data.images?.length > 0)
@@ -64,43 +69,77 @@ async function generateImage(apiKey, chuteUrl) {
     if (data.data?.[0]?.url)
         return data.data[0].url;
 
-    throw new Error("Unrecognised response format. Try a different model!");
+    throw new Error("Unrecognised response format — try a different model!");
 }
 
+// ─── Position cats relative to #chat ──────────────────────────────────────────
+function getCatPositions() {
+    const chat = $("#chat")[0];
+    if (!chat) return null;
+
+    const rect = chat.getBoundingClientRect();
+    return {
+        top:   Math.max(rect.top, 0),
+        left:  rect.left,
+        right: window.innerWidth - rect.right
+    };
+}
+
+function positionCats() {
+    const pos = getCatPositions();
+    if (!pos) return;
+
+    $(".ecc-cat-img.left").css({
+        top:  pos.top + "px",
+        left: pos.left + "px"
+    });
+
+    $(".ecc-cat-img.right").css({
+        top:   pos.top + "px",
+        right: pos.right + "px",
+        left:  "auto"
+    });
+}
+
+// ─── Decorations ───────────────────────────────────────────────────────────────
 function applyDecorations() {
     const { catImageLeft, catImageRight } = extension_settings[extensionName];
+
     if (!catImageLeft) {
-        setStatus("⚠️ No cat images yet — generate some first!", "error");
+        setStatus("⚠️ No cats yet — generate some first!", "error");
         return;
     }
 
-    const chat = $("#chat");
-    if (!chat.length) {
-        setStatus("⚠️ Couldn't find the chat area. Contact developer!", "error");
-        return;
-    }
+    // Remove any old cats first
+    removeDecorations();
 
-    if (chat.parent().hasClass("ecc-decoration-wrapper")) return;
-
-    chat.wrap('<div class="ecc-decoration-wrapper"></div>');
-    chat.parent().prepend(`
-        <img class="ecc-cat-img left"  src="${catImageLeft}"  alt="cat"/>
-        <img class="ecc-cat-img right" src="${catImageRight || catImageLeft}" alt="cat"/>
+    // Append directly to body so they're fixed to the screen
+    $("body").append(`
+        <img class="ecc-cat-img left"
+             src="${catImageLeft}"
+             alt="cat left"
+             id="ecc_cat_left"/>
+        <img class="ecc-cat-img right"
+             src="${catImageRight || catImageLeft}"
+             alt="cat right"
+             id="ecc_cat_right"/>
     `);
+
+    // Position them over the chat
+    positionCats();
+
+    // Reposition on resize
+    $(window).on("resize.ecc", positionCats);
+
+    console.log(`[${extensionName}] ✅ Cats applied and fixed to screen!`);
 }
 
 function removeDecorations() {
-    const chat = $("#chat");
-    if (!chat.parent().hasClass("ecc-decoration-wrapper")) return;
-    $(".ecc-cat-img").remove();
-    chat.unwrap();
+    $("#ecc_cat_left, #ecc_cat_right").remove();
+    $(window).off("resize.ecc");
 }
 
-function refreshDecorations() {
-    removeDecorations();
-    if (extension_settings[extensionName].enabled) applyDecorations();
-}
-
+// ─── Event Handlers ────────────────────────────────────────────────────────────
 function onToggleChange(event) {
     const value = Boolean($(event.target).prop("checked"));
     extension_settings[extensionName].enabled = value;
@@ -124,7 +163,6 @@ async function onGenerateClick() {
 
     if (!apiKey)   { setStatus("❌ Please enter your Chutes API key!", "error"); return; }
     if (!chuteUrl) { setStatus("❌ Please enter the Chute endpoint URL!", "error"); return; }
-
     if (!chuteUrl.startsWith("https://")) {
         setStatus("❌ URL should start with https://", "error");
         return;
@@ -132,31 +170,40 @@ async function onGenerateClick() {
 
     $("#ecc_generate_btn").prop("disabled", true).val("⏳ Generating...");
     $("#ecc_preview").hide();
-    setStatus("🎨 Generating your watercolor cat... ~20–30 seconds 🐱", "loading");
 
     try {
-        const imageUrl = await generateImage(apiKey, chuteUrl);
+        // Generate left cat
+        setStatus("🎨 Generating cat 1 of 2... ~20–30 seconds 🐱", "loading");
+        const leftUrl = await generateImage(apiKey, chuteUrl, PROMPT_LEFT);
 
-        extension_settings[extensionName].catImageLeft  = imageUrl;
-        extension_settings[extensionName].catImageRight = imageUrl;
+        // Generate right cat
+        setStatus("🎨 Generating cat 2 of 2... almost there! 🐱", "loading");
+        const rightUrl = await generateImage(apiKey, chuteUrl, PROMPT_RIGHT);
+
+        // Save both
+        extension_settings[extensionName].catImageLeft  = leftUrl;
+        extension_settings[extensionName].catImageRight = rightUrl;
         saveSettingsDebounced();
 
-        $("#ecc_preview_left").attr("src", imageUrl);
-        $("#ecc_preview_right").attr("src", imageUrl);
+        // Show preview
+        $("#ecc_preview_left").attr("src", leftUrl);
+        $("#ecc_preview_right").attr("src", rightUrl);
         $("#ecc_preview").show();
-        setStatus("✅ Cat generated! Check the preview, then click Apply.", "success");
+
+        setStatus("✅ Both cats generated! Check the preview, then click Apply.", "success");
     } catch (err) {
         setStatus(`❌ ${err.message}`, "error");
     } finally {
-        $("#ecc_generate_btn").prop("disabled", false).val("✨ Generate Cats");
+        $("#ecc_generate_btn").prop("disabled", false).val("✨ Generate Both Cats");
     }
 }
 
 function onApplyClick() {
-    refreshDecorations();
-    setStatus("✅ Applied! Toggle off/on if cats don't appear right away.", "success");
+    applyDecorations();
+    setStatus("✅ Cats are now fixed to your screen! They'll stay while you scroll. 🐾", "success");
 }
 
+// ─── Load Settings ─────────────────────────────────────────────────────────────
 function loadSettings() {
     extension_settings[extensionName] = extension_settings[extensionName] || {};
     if (Object.keys(extension_settings[extensionName]).length === 0) {
@@ -170,13 +217,14 @@ function loadSettings() {
 
     if (s.catImageLeft) {
         $("#ecc_preview_left").attr("src", s.catImageLeft);
-        $("#ecc_preview_right").attr("src", s.catImageLeft);
+        $("#ecc_preview_right").attr("src", s.catImageRight || s.catImageLeft);
         $("#ecc_preview").show();
     }
 
     if (s.enabled) applyDecorations();
 }
 
+// ─── Init ──────────────────────────────────────────────────────────────────────
 jQuery(async () => {
     console.log(`[${extensionName}] Loading...`);
     try {
