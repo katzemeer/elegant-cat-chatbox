@@ -17,7 +17,7 @@
             <input id="ecc_api_key" type="password"
                    placeholder="Paste your Chutes API key here"
                    class="ecc-input"/>
-            <small class="ecc-hint">Saved locally in SillyTavern only. Never shared.</small>
+            <small class="ecc-hint">Saved locally in SillyTavern only.</small>
 
             <hr class="ecc-divider"/>
 
@@ -26,13 +26,16 @@
                    placeholder="e.g. https://chutes-z-image-turbo.chutes.ai/generate"
                    class="ecc-input"/>
             <small class="ecc-hint">
-                Go to chutes.ai → pick any image model → copy the URL from the curl example.
-                It looks like: <b>https://username-modelname.chutes.ai/generate</b>
+                Copy the URL from the curl example on any Chutes image model page.
             </small>
 
             <div class="ecc-setting-row" style="margin-top:10px;">
-                <input id="ecc_generate_btn" class="menu_button" type="submit" value="✨ Generate Cats"/>
+                <input id="ecc_generate_btn" class="menu_button" type="submit"
+                       value="✨ Generate Both Cats"/>
             </div>
+            <small class="ecc-hint">
+                This generates TWO cats (left + right corners) — takes ~40–60 seconds total.
+            </small>
 
             <div id="ecc_status" class="ecc-status" style="display:none;"></div>
 
@@ -45,12 +48,13 @@
                         <img id="ecc_preview_left" class="ecc-preview-img" src="" alt="Left cat"/>
                     </div>
                     <div style="text-align:center;">
-                        <small>Right corner (mirrored)</small>
+                        <small>Right corner</small>
                         <img id="ecc_preview_right" class="ecc-preview-img ecc-mirror" src="" alt="Right cat"/>
                     </div>
                 </div>
                 <div class="ecc-setting-row" style="margin-top:6px;">
-                    <input id="ecc_apply_btn" class="menu_button" type="submit" value="✅ Apply to Chatbox"/>
+                    <input id="ecc_apply_btn" class="menu_button" type="submit"
+                           value="✅ Apply to Chatbox"/>
                 </div>
             </div>
 
