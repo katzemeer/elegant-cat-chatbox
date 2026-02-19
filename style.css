@@ -1,42 +1,95 @@
-/* ── Cat images — fixed to screen, positioned by JS ─── */
-.ecc-cat-img {
+/* ══════════════════════════════════════════════════
+   BASE OVERLAY — shared by cats and corner decor
+   ══════════════════════════════════════════════════ */
+.ecc-overlay {
     position: fixed;
-    width: 140px;
-    height: 140px;
-    object-fit: contain;
     pointer-events: none;
     z-index: 50;
-    filter: drop-shadow(0px 2px 8px rgba(0,0,0,0.3));
-    animation: ecc-fadein 0.6s ease;
+    object-fit: contain;
+    animation: ecc-fadein 0.5s ease;
 }
 
-/* Right cat is mirrored so both cats face the chat */
-.ecc-cat-flip {
-    transform: scaleX(-1);
-}
-
-/* Screen blend mode: makes BLACK pixels transparent.
-   Use this with black-background generated images on dark UIs. */
+/* Screen blend: makes solid BLACK backgrounds transparent.
+   Use with black-background generated images on dark UIs. */
 .ecc-blend-screen {
     mix-blend-mode: screen;
 }
 
-@keyframes ecc-fadein {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
+/* Cat images — slightly larger, sit on top edge of chat */
+.ecc-cat {
+    filter: drop-shadow(0px 2px 6px rgba(0,0,0,0.35));
 }
 
-/* Right cat needs to keep its flip AND the fade-in plays nice */
-.ecc-cat-flip {
+/* Right cat is mirrored to face inward */
+.ecc-flip {
     transform: scaleX(-1);
 }
 
-/* ── Settings panel ───────────────────────────────── */
+/* Corner decorations — sit at top corners of the chat */
+.ecc-decor {
+    filter: drop-shadow(0px 1px 4px rgba(0,0,0,0.2));
+    opacity: 0.9;
+}
+
+/* Right corner decoration: mirror horizontally */
+.ecc-decor-flip {
+    transform: scaleX(-1);
+}
+
+@keyframes ecc-fadein {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Flip + fadein play nice by overriding transform at end */
+.ecc-flip       { transform: scaleX(-1); }
+.ecc-decor-flip { transform: scaleX(-1); }
+
+/* ══════════════════════════════════════════════════
+   TITLE BAR
+   ══════════════════════════════════════════════════ */
+#ecc_title_bar {
+    position: fixed;
+    z-index: 55;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    pointer-events: none;
+    padding: 0 8px;
+    overflow: hidden;
+}
+
+.ecc-title-ornament {
+    color: rgba(255,220,150,0.7);
+    font-size: 0.75em;
+    letter-spacing: 2px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.ecc-title-text {
+    font-family: Georgia, "Times New Roman", serif;
+    font-style: italic;
+    font-size: 0.88em;
+    color: rgba(255,240,210,0.92);
+    text-shadow: 0 1px 6px rgba(0,0,0,0.8), 0 0 12px rgba(180,130,60,0.3);
+    letter-spacing: 1.5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex: 1;
+    text-align: center;
+}
+
+/* ══════════════════════════════════════════════════
+   SETTINGS PANEL
+   ══════════════════════════════════════════════════ */
 .ecc-setting-row {
     display: flex;
     align-items: center;
     gap: 8px;
-    margin: 6px 0;
+    margin: 5px 0;
 }
 
 .ecc-divider {
@@ -48,23 +101,31 @@
 .ecc-label {
     display: block;
     font-weight: bold;
-    margin-bottom: 4px;
-    font-size: 0.85em;
-    opacity: 0.85;
+    margin: 4px 0 2px;
+    font-size: 0.88em;
+    opacity: 0.9;
+}
+
+.ecc-sublabel {
+    display: block;
+    font-weight: 600;
+    font-size: 0.8em;
+    opacity: 0.7;
+    margin-bottom: 2px;
 }
 
 .ecc-hint {
     display: block;
     opacity: 0.6;
-    font-size: 0.78em;
+    font-size: 0.76em;
     line-height: 1.4;
-    margin-bottom: 4px;
+    margin-bottom: 3px;
 }
 
-.ecc-hint-mode {
-    margin-top: 4px;
-    opacity: 0.75;
+.ecc-hint-italic {
     font-style: italic;
+    opacity: 0.75;
+    margin-top: 3px;
 }
 
 .ecc-input {
@@ -80,7 +141,6 @@
 
 .ecc-select {
     cursor: pointer;
-    margin-bottom: 4px;
 }
 
 .ecc-select option {
@@ -88,12 +148,12 @@
     color: #eee;
 }
 
-/* ── Status message ──────────────────────────────── */
+/* ── Status messages ─────────────────────────────── */
 .ecc-status {
-    margin-top: 8px;
-    padding: 8px 10px;
+    margin-top: 6px;
+    padding: 7px 10px;
     border-radius: 6px;
-    font-size: 0.82em;
+    font-size: 0.8em;
     line-height: 1.4;
 }
 
@@ -118,20 +178,25 @@
 /* ── Preview ─────────────────────────────────────── */
 .ecc-preview-row {
     display: flex;
-    gap: 12px;
+    gap: 10px;
     justify-content: center;
-    margin-top: 6px;
+    margin: 6px 0;
 }
 
 .ecc-preview-img {
     display: block;
-    width: 90px;
-    height: 90px;
+    width: 85px;
+    height: 85px;
     object-fit: contain;
     border-radius: 6px;
     border: 1px solid rgba(255,255,255,0.15);
-    background: rgba(255,255,255,0.05);
-    margin-top: 4px;
+    background: rgba(255,255,255,0.04);
+    margin-top: 3px;
+}
+
+.ecc-preview-decor {
+    width: 100px;
+    height: 100px;
 }
 
 .ecc-mirror { transform: scaleX(-1); }
