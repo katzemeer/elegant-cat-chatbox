@@ -1,24 +1,19 @@
-/* ── Wrapper ─────────────────────────────────────────── */
-.ecc-decoration-wrapper {
-    position: relative;
-    padding-top: 24px;
-}
-
-/* ── Corner cats ─────────────────────────────────────── */
+/* ── Fixed corner cats (stay while scrolling!) ───── */
 .ecc-cat-img {
-    position: absolute;
-    top: -10px;
-    width: 120px;
-    height: 120px;
+    position: fixed;
+    width: 130px;
+    height: 130px;
     object-fit: contain;
     pointer-events: none;
-    z-index: 10;
+    z-index: 9999;
+    /* This makes white background invisible! */
+    mix-blend-mode: multiply;
 }
 
-.ecc-cat-img.left  { left: 0; }
-.ecc-cat-img.right { right: 0; transform: scaleX(-1); }
+.ecc-cat-img.left  { transform: scaleX(1); }
+.ecc-cat-img.right { transform: scaleX(-1); }
 
-/* ── Settings panel UI ───────────────────────────────── */
+/* ── Settings panel UI ───────────────────────────── */
 .ecc-setting-row {
     display: flex;
     align-items: center;
@@ -58,11 +53,7 @@
     box-sizing: border-box;
 }
 
-select.ecc-input {
-    cursor: pointer;
-}
-
-/* ── Status message ──────────────────────────────────── */
+/* ── Status message ──────────────────────────────── */
 .ecc-status {
     margin-top: 8px;
     padding: 8px 10px;
@@ -89,7 +80,7 @@ select.ecc-input {
     color: #ff9a9a;
 }
 
-/* ── Preview ─────────────────────────────────────────── */
+/* ── Preview ─────────────────────────────────────── */
 .ecc-preview-row {
     display: flex;
     gap: 12px;
@@ -99,8 +90,8 @@ select.ecc-input {
 
 .ecc-preview-img {
     display: block;
-    width: 100px;
-    height: 100px;
+    width: 90px;
+    height: 90px;
     object-fit: contain;
     border-radius: 6px;
     border: 1px solid rgba(255,255,255,0.15);
