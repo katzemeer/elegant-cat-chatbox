@@ -3,175 +3,106 @@ import { saveSettingsDebounced } from "../../../../script.js";
 
 const extensionName = "elegant-cat-chatbox";
 const extensionFolderPath = `scripts/extensions/third-party/${extensionName}`;
-const defaultSettings = { enabled: false };
 
-// ─── Pixel Cat SVG Generator ─────────────────────────────────────────────────
-// Each "pixel" is an SVG rect. Body = main fur color, stripe = tabby stripe,
-// eye = iris color, hasStripes = tabby markings, patches = extra overlay rects
-function makePixelCat(body, stripe, eye, hasStripes = true, patches = '') {
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 92" width="80" height="92">
-        <!-- Left ear -->
-        <rect x="8"  y="0"  width="16" height="4"  fill="#1a1208"/>
-        <rect x="8"  y="4"  width="16" height="10" fill="${body}"/>
-        <rect x="10" y="6"  width="12" height="8"  fill="#ffd4dc"/>
-        <!-- Right ear -->
-        <rect x="56" y="0"  width="16" height="4"  fill="#1a1208"/>
-        <rect x="56" y="4"  width="16" height="10" fill="${body}"/>
-        <rect x="58" y="6"  width="12" height="8"  fill="#ffd4dc"/>
-        <!-- Head outline + fill -->
-        <rect x="4"  y="8"  width="72" height="46" fill="#1a1208"/>
-        <rect x="8"  y="12" width="64" height="38" fill="${body}"/>
-        ${hasStripes ? `
-        <rect x="30" y="12" width="6" height="16" fill="${stripe}"/>
-        <rect x="44" y="12" width="6" height="16" fill="${stripe}"/>` : ''}
-        <!-- Eyes (left) -->
-        <rect x="13" y="22" width="18" height="14" fill="#1a1208"/>
-        <rect x="15" y="24" width="14" height="10" fill="${eye}"/>
-        <rect x="15" y="24" width="6"  height="5"  fill="white"/>
-        <!-- Eyes (right) -->
-        <rect x="49" y="22" width="18" height="14" fill="#1a1208"/>
-        <rect x="51" y="24" width="14" height="10" fill="${eye}"/>
-        <rect x="53" y="24" width="6"  height="5"  fill="white"/>
-        <!-- Pink cheeks -->
-        <rect x="8"  y="33" width="12" height="9" fill="#ffb8c8" opacity="0.85"/>
-        <rect x="60" y="33" width="12" height="9" fill="#ffb8c8" opacity="0.85"/>
-        <!-- Nose -->
-        <rect x="33" y="30" width="14" height="10" fill="#e87090"/>
-        <!-- Mouth marks -->
-        <rect x="26" y="42" width="8" height="4" fill="#1a1208"/>
-        <rect x="46" y="42" width="8" height="4" fill="#1a1208"/>
-        <!-- Whiskers -->
-        <rect x="0"  y="34" width="11" height="2" fill="#1a1208"/>
-        <rect x="0"  y="39" width="11" height="2" fill="#1a1208"/>
-        <rect x="69" y="34" width="11" height="2" fill="#1a1208"/>
-        <rect x="69" y="39" width="11" height="2" fill="#1a1208"/>
-        ${patches}
-        <!-- Body outline + fill -->
-        <rect x="8"  y="54" width="64" height="32" fill="#1a1208"/>
-        <rect x="12" y="56" width="56" height="26" fill="${body}"/>
-        ${hasStripes ? `
-        <rect x="12" y="64" width="56" height="4" fill="${stripe}"/>
-        <rect x="12" y="72" width="56" height="4" fill="${stripe}"/>` : ''}
-        <!-- Left arm -->
-        <rect x="0"  y="56" width="14" height="18" fill="${body}"/>
-        <rect x="0"  y="72" width="16" height="6"  fill="#1a1208"/>
-        <!-- Right arm -->
-        <rect x="66" y="56" width="14" height="18" fill="${body}"/>
-        <rect x="64" y="72" width="16" height="6"  fill="#1a1208"/>
-        <!-- Legs -->
-        <rect x="14" y="84" width="20" height="8" fill="#1a1208"/>
-        <rect x="16" y="84" width="16" height="6" fill="${body}"/>
-        <rect x="46" y="84" width="20" height="8" fill="#1a1208"/>
-        <rect x="48" y="84" width="16" height="6" fill="${body}"/>
-        <!-- Tail -->
-        <rect x="68" y="58" width="8"  height="18" fill="${body}"/>
-        <rect x="58" y="74" width="18" height="8"  fill="${body}"/>
-        <rect x="58" y="80" width="20" height="4"  fill="#1a1208"/>
-    </svg>`;
+const defaultSettings = {
+    enabled: false,
+    apiKey: "",
+    catImageLeft: "",   // base64 data URL
+    catImageRight: ""   // base64 data URL (same image, CSS mirrors it)
+};
+
+// ─── Prompts ───────────────────────────────────────────────────────────────────
+const CAT_PROMPT = [
+    "A single cute cat sitting gracefully, soft delicate watercolor illustration,",
+    "pastel pink and sage green botanical flowers and leaves surrounding the cat,",
+    "elegant, whimsical, storybook style, white background, high detail,",
+    "centered composition, no text, no watermark, no border"
+].join(" ");
+
+// ─── Chutes API ────────────────────────────────────────────────────────────────
+async function generateCatImage(apiKey) {
+    const response = await fetch("https://api.chutes.ai/v1/images/generations", {
+        method: "POST",
+        headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            model: "black-forest-labs/FLUX.1-dev",
+            prompt: CAT_PROMPT,
+            n: 1,
+            size: "512x512",
+            response_format: "b64_json"
+        })
+    });
+
+    if (!response.ok) {
+        const err = await response.text();
+        throw new Error(`Chutes API error ${response.status}: ${err}`);
+    }
+
+    const data = await response.json();
+    const b64 = data.data?.[0]?.b64_json;
+    if (!b64) throw new Error("No image data returned from API");
+
+    return `data:image/png;base64,${b64}`;
 }
 
-// ─── Cat Variants ─────────────────────────────────────────────────────────────
-const catOrange = makePixelCat('#e8903c', '#c06818', '#4a7c5a', true);
-
-const catGray   = makePixelCat('#9898aa', '#606272', '#4a6c8a', false);
-
-// Black & white: white base + black head patch
-const catBnW    = makePixelCat('#e8e4dc', '#e8e4dc', '#2a2030', false,
-    `<rect x="8"  y="12" width="36" height="22" fill="#222222"/>
-     <rect x="10" y="14" width="32" height="18" fill="#333333"/>
-     <rect x="15" y="24" width="14" height="10" fill="#2a2030"/>
-     <rect x="15" y="24" width="6"  height="5"  fill="white"/>`
-);
-
-// Calico: white base + orange + black patches
-const catCalico = makePixelCat('#e8e4dc', '#e8e4dc', '#2a2030', false,
-    `<rect x="8"  y="12" width="20" height="18" fill="#e8903c"/>
-     <rect x="50" y="20" width="22" height="14" fill="#222222"/>
-     <rect x="12" y="56" width="24" height="14" fill="#e8903c"/>
-     <rect x="40" y="60" width="20" height="18" fill="#222222"/>
-     <rect x="49" y="22" width="18" height="14" fill="#2a2030"/>
-     <rect x="51" y="24" width="14" height="10" fill="#9090a0"/>
-     <rect x="53" y="24" width="6"  height="5"  fill="white"/>`
-);
-
-// ─── Tiny decorations (paws + hearts) ────────────────────────────────────────
-function makePaw(color = '#ffb8c8', size = 20) {
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 22 22" width="${size}" height="${size}">
-        <rect x="7"  y="11" width="8" height="8" fill="${color}"/>
-        <rect x="6"  y="12" width="10" height="7" fill="${color}"/>
-        <rect x="2"  y="5"  width="5" height="5" fill="${color}"/>
-        <rect x="9"  y="3"  width="5" height="5" fill="${color}"/>
-        <rect x="16" y="5"  width="4" height="5" fill="${color}"/>
-    </svg>`;
+// ─── Status helper ─────────────────────────────────────────────────────────────
+function setStatus(message, type = "loading") {
+    const el = $("#ecc_status");
+    el.text(message)
+      .attr("class", `ecc-status ${type}`)
+      .show();
 }
 
-function makeHeart(color = '#ffb8c8', size = 16) {
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 14" width="${size}" height="${size}">
-        <rect x="1" y="3" width="4" height="5" fill="${color}"/>
-        <rect x="5" y="1" width="3" height="2" fill="${color}"/>
-        <rect x="8" y="1" width="3" height="2" fill="${color}"/>
-        <rect x="11" y="3" width="4" height="5" fill="${color}"/>
-        <rect x="1" y="7" width="14" height="4" fill="${color}"/>
-        <rect x="3" y="11" width="10" height="2" fill="${color}"/>
-        <rect x="5" y="13" width="6"  height="1" fill="${color}"/>
-    </svg>`;
+function clearStatus() {
+    $("#ecc_status").hide().text("").attr("class", "ecc-status");
 }
 
-const topDeco = [
-    makePaw('#ffb8c8', 18),
-    makeHeart('#ffb8c8', 14),
-    makePaw('#e8c0b0', 16),
-    makeHeart('#ffd0b8', 13),
-    makePaw('#ffb8c8', 18),
-    makeHeart('#ffb8c8', 14),
-    makePaw('#e8c0b0', 16),
-    makeHeart('#ffd0b8', 13),
-    makePaw('#ffb8c8', 18),
-    makeHeart('#ffb8c8', 14),
-].join('');
-
-// ─── Apply / Remove ───────────────────────────────────────────────────────────
+// ─── Decorations ───────────────────────────────────────────────────────────────
 function applyDecorations() {
-    const chatTarget = $("#chat");
-    if (!chatTarget.length) {
-        console.warn(`[${extensionName}] ⚠️ Could not find #chat — open F12 and tell me what wraps your chat messages!`);
+    const { catImageLeft, catImageRight } = extension_settings[extensionName];
+
+    // Need images to apply
+    if (!catImageLeft) {
+        console.warn(`[${extensionName}] No cat images yet — generate some first!`);
         return;
     }
+
+    const chatTarget = $("#chat");
+    if (!chatTarget.length) {
+        console.warn(`[${extensionName}] ⚠️ Could not find #chat`);
+        return;
+    }
+
     if (chatTarget.parent().hasClass("ecc-decoration-wrapper")) return;
 
     chatTarget.wrap('<div class="ecc-decoration-wrapper"></div>');
     const wrapper = chatTarget.parent();
 
     wrapper.prepend(`
-        <div class="ecc-cat ecc-cat-topleft">${catOrange}</div>
-        <div class="ecc-cat ecc-cat-topright">${catGray}</div>
-        <div class="ecc-cat ecc-cat-inner-left">${catBnW}</div>
-        <div class="ecc-cat ecc-cat-inner-right">${catCalico}</div>
-        <div class="ecc-top-deco">${topDeco}</div>
+        <img class="ecc-cat-img left"  src="${catImageLeft}"  alt="cat"/>
+        <img class="ecc-cat-img right" src="${catImageRight || catImageLeft}" alt="cat"/>
     `);
 
-    console.log(`[${extensionName}] ✅ Pixel cats deployed!`);
+    console.log(`[${extensionName}] ✅ Cats applied to chatbox`);
 }
 
 function removeDecorations() {
     const chat = $("#chat");
     if (!chat.parent().hasClass("ecc-decoration-wrapper")) return;
-    $(".ecc-cat, .ecc-top-deco").remove();
+    $(".ecc-cat-img").remove();
     chat.unwrap();
     console.log(`[${extensionName}] Decorations removed`);
 }
 
-// ─── Settings ─────────────────────────────────────────────────────────────────
-function loadSettings() {
-    extension_settings[extensionName] = extension_settings[extensionName] || {};
-    if (Object.keys(extension_settings[extensionName]).length === 0) {
-        Object.assign(extension_settings[extensionName], defaultSettings);
-    }
-    const enabled = extension_settings[extensionName].enabled;
-    $("#ecc_enabled").prop("checked", enabled);
-    if (enabled) applyDecorations();
+function refreshDecorations() {
+    removeDecorations();
+    if (extension_settings[extensionName].enabled) applyDecorations();
 }
 
+// ─── Handlers ─────────────────────────────────────────────────────────────────
 function onToggleChange(event) {
     const value = Boolean($(event.target).prop("checked"));
     extension_settings[extensionName].enabled = value;
@@ -179,12 +110,85 @@ function onToggleChange(event) {
     value ? applyDecorations() : removeDecorations();
 }
 
+function onApiKeyChange() {
+    extension_settings[extensionName].apiKey = $("#ecc_api_key").val().trim();
+    saveSettingsDebounced();
+}
+
+async function onGenerateClick() {
+    const apiKey = extension_settings[extensionName].apiKey;
+
+    if (!apiKey) {
+        setStatus("❌ Please enter your Chutes API key first!", "error");
+        return;
+    }
+
+    $("#ecc_generate_btn").prop("disabled", true).val("⏳ Generating...");
+    $("#ecc_preview").hide();
+    setStatus("🎨 Generating watercolor cat... this takes ~20–30 seconds. Sit tight! 🐱", "loading");
+
+    try {
+        // Generate one image — CSS mirrors it for the right side
+        const imageUrl = await generateCatImage(apiKey);
+
+        // Store in settings
+        extension_settings[extensionName].catImageLeft  = imageUrl;
+        extension_settings[extensionName].catImageRight = imageUrl;
+        saveSettingsDebounced();
+
+        // Show preview
+        $("#ecc_preview_left").attr("src", imageUrl);
+        $("#ecc_preview_right").attr("src", imageUrl);
+        $("#ecc_preview").show();
+
+        setStatus("✅ Cat generated! Check the preview below, then click Apply.", "success");
+        console.log(`[${extensionName}] ✅ Image generated and stored`);
+    } catch (err) {
+        console.error(`[${extensionName}] Generation error:`, err);
+        setStatus(`❌ Error: ${err.message}`, "error");
+    } finally {
+        $("#ecc_generate_btn").prop("disabled", false).val("✨ Generate Cats");
+    }
+}
+
+function onApplyClick() {
+    refreshDecorations();
+    setStatus("✅ Cats applied to your chatbox! Toggle off/on if they don't appear.", "success");
+}
+
+// ─── Load Settings ─────────────────────────────────────────────────────────────
+function loadSettings() {
+    extension_settings[extensionName] = extension_settings[extensionName] || {};
+    if (Object.keys(extension_settings[extensionName]).length === 0) {
+        Object.assign(extension_settings[extensionName], defaultSettings);
+    }
+
+    const s = extension_settings[extensionName];
+    $("#ecc_enabled").prop("checked", s.enabled);
+    $("#ecc_api_key").val(s.apiKey || "");
+
+    // If we already have a saved image, show the preview
+    if (s.catImageLeft) {
+        $("#ecc_preview_left").attr("src", s.catImageLeft);
+        $("#ecc_preview_right").attr("src", s.catImageLeft);
+        $("#ecc_preview").show();
+    }
+
+    if (s.enabled) applyDecorations();
+}
+
+// ─── Init ──────────────────────────────────────────────────────────────────────
 jQuery(async () => {
     console.log(`[${extensionName}] Loading...`);
     try {
         const settingsHtml = await $.get(`${extensionFolderPath}/example.html`);
         $("#extensions_settings2").append(settingsHtml);
+
         $("#ecc_enabled").on("input", onToggleChange);
+        $("#ecc_api_key").on("change", onApiKeyChange);
+        $("#ecc_generate_btn").on("click", onGenerateClick);
+        $("#ecc_apply_btn").on("click", onApplyClick);
+
         loadSettings();
         console.log(`[${extensionName}] ✅ Loaded`);
     } catch (error) {
