@@ -25,9 +25,35 @@
             <input id="ecc_chute_url" type="text"
                    placeholder="e.g. https://chutes-z-image-turbo.chutes.ai/generate"
                    class="ecc-input"/>
-            <small class="ecc-hint">
-                Copy the URL from the curl example on any Chutes image model page.
-            </small>
+            <small class="ecc-hint">Copy the URL from the curl example on any Chutes image model page.</small>
+
+            <hr class="ecc-divider"/>
+
+            <!-- Background removal mode toggle -->
+            <label class="ecc-label">🖼️ Background Removal Method</label>
+
+            <div class="ecc-setting-row">
+                <input type="radio" name="ecc_bg_mode" id="ecc_bg_black" value="black"/>
+                <label for="ecc_bg_black">⚫ Black bg + screen blend <small>(no extra API needed)</small></label>
+            </div>
+            <div class="ecc-setting-row">
+                <input type="radio" name="ecc_bg_mode" id="ecc_bg_removebg" value="removebg"/>
+                <label for="ecc_bg_removebg">✂️ remove.bg API <small>(real transparency, any background)</small></label>
+            </div>
+
+            <small id="ecc_bg_hint" class="ecc-hint ecc-hint-mode"></small>
+
+            <!-- remove.bg key — shown only when that mode is selected -->
+            <div id="ecc_removebg_row" style="display:none; margin-top:6px;">
+                <label class="ecc-label">remove.bg API Key</label>
+                <input id="ecc_removebg_key" type="password"
+                       placeholder="Paste your remove.bg API key here"
+                       class="ecc-input"/>
+                <small class="ecc-hint">
+                    Free tier at <b>remove.bg</b> gives 50 removals/month — more than enough!
+                    Sign up at remove.bg → API → Copy key.
+                </small>
+            </div>
 
             <hr class="ecc-divider"/>
 
@@ -35,18 +61,15 @@
             <select id="ecc_prompt_select" class="ecc-input ecc-select">
                 <!-- Populated by JS -->
             </select>
-            <small class="ecc-hint">
-                Pick a theme or let the AI surprise you with 🎲 Random!
-                Each theme uses unique creative prompts for left &amp; right cats.
-            </small>
+            <small class="ecc-hint">Pick a theme or let the AI surprise you with 🎲 Random!</small>
 
             <div class="ecc-setting-row" style="margin-top:10px;">
                 <input id="ecc_generate_btn" class="menu_button" type="submit"
                        value="✨ Generate Both Cats"/>
             </div>
             <small class="ecc-hint">
-                Generates TWO cats (left + right corners) — takes ~40–60 seconds total.
-                Cats appear at the <strong>bottom corners</strong> of your screen, not over text!
+                Generates two cats — appears at the sides of your chatbox, not over the text!
+                Takes ~40–60 seconds. Using remove.bg adds ~10 more seconds.
             </small>
 
             <div id="ecc_status" class="ecc-status" style="display:none;"></div>
@@ -56,11 +79,11 @@
                 <label class="ecc-label">Preview</label>
                 <div class="ecc-preview-row">
                     <div style="text-align:center;">
-                        <small>Left corner</small>
+                        <small>Left cat</small>
                         <img id="ecc_preview_left" class="ecc-preview-img" src="" alt="Left cat"/>
                     </div>
                     <div style="text-align:center;">
-                        <small>Right corner</small>
+                        <small>Right cat (mirrored)</small>
                         <img id="ecc_preview_right" class="ecc-preview-img ecc-mirror" src="" alt="Right cat"/>
                     </div>
                 </div>
