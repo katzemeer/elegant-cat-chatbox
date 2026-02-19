@@ -1,18 +1,43 @@
 /* ── Fixed corner cats ───────────────────────────── */
+/* Cats sit at BOTTOM CORNERS of the viewport — outside and below the chat text */
 .ecc-cat-img {
     position: fixed;
-    width: 130px;
-    height: 130px;
+    width: 150px;
+    height: 150px;
     object-fit: contain;
     pointer-events: none;
-    z-index: 100; /* low enough that menus appear on top */
-    border-radius: 16px;
-    /* soft drop shadow to blend nicely */
-    filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.35));
+    z-index: 50; /* low enough that menus and chat appear on top */
+
+    /* 🔑 KEY FIX: mix-blend-mode multiply makes white backgrounds vanish.
+       White pixels become transparent; the cat illustration shows through cleanly. */
+    mix-blend-mode: multiply;
+
+    /* Sticker-style drop shadow for depth */
+    filter: drop-shadow(0px 2px 6px rgba(0,0,0,0.25));
+
+    /* Smooth fade-in when applied */
+    animation: ecc-fadein 0.5s ease;
 }
 
-.ecc-cat-img.left  { transform: scaleX(1); }
-.ecc-cat-img.right { transform: scaleX(-1); }
+@keyframes ecc-fadein {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Left cat: sticks to bottom-left corner */
+.ecc-cat-left {
+    bottom: 0;
+    left: 0;
+    transform-origin: bottom left;
+}
+
+/* Right cat: sticks to bottom-right corner, mirrored */
+.ecc-cat-right {
+    bottom: 0;
+    right: 0;
+    transform: scaleX(-1);
+    transform-origin: bottom right;
+}
 
 /* ── Settings panel UI ───────────────────────────── */
 .ecc-setting-row {
@@ -41,6 +66,7 @@
     opacity: 0.6;
     font-size: 0.78em;
     line-height: 1.4;
+    margin-bottom: 4px;
 }
 
 .ecc-input {
@@ -52,6 +78,16 @@
     color: inherit;
     font-size: 0.85em;
     box-sizing: border-box;
+}
+
+.ecc-select {
+    cursor: pointer;
+    margin-bottom: 4px;
+}
+
+.ecc-select option {
+    background: #1a1a2e;
+    color: #eee;
 }
 
 /* ── Status message ──────────────────────────────── */
@@ -98,71 +134,8 @@
     border: 1px solid rgba(255,255,255,0.15);
     background: rgba(255,255,255,0.05);
     margin-top: 4px;
-}
-
-.ecc-mirror { transform: scaleX(-1); }
-.ecc-hint {
-    display: block;
-    opacity: 0.6;
-    font-size: 0.78em;
-    line-height: 1.4;
-}
-
-.ecc-input {
-    width: 100%;
-    padding: 5px 8px;
-    border-radius: 4px;
-    border: 1px solid rgba(255,255,255,0.2);
-    background: rgba(0,0,0,0.3);
-    color: inherit;
-    font-size: 0.85em;
-    box-sizing: border-box;
-}
-
-/* ── Status message ──────────────────────────────── */
-.ecc-status {
-    margin-top: 8px;
-    padding: 8px 10px;
-    border-radius: 6px;
-    font-size: 0.82em;
-    line-height: 1.4;
-}
-
-.ecc-status.loading {
-    background: rgba(100,140,255,0.15);
-    border: 1px solid rgba(100,140,255,0.3);
-    color: #aac0ff;
-}
-
-.ecc-status.success {
-    background: rgba(80,200,120,0.15);
-    border: 1px solid rgba(80,200,120,0.3);
-    color: #90e8a8;
-}
-
-.ecc-status.error {
-    background: rgba(220,80,80,0.15);
-    border: 1px solid rgba(220,80,80,0.3);
-    color: #ff9a9a;
-}
-
-/* ── Preview ─────────────────────────────────────── */
-.ecc-preview-row {
-    display: flex;
-    gap: 12px;
-    justify-content: center;
-    margin-top: 6px;
-}
-
-.ecc-preview-img {
-    display: block;
-    width: 90px;
-    height: 90px;
-    object-fit: contain;
-    border-radius: 6px;
-    border: 1px solid rgba(255,255,255,0.15);
-    background: rgba(255,255,255,0.05);
-    margin-top: 4px;
+    /* Also apply blend mode in preview so you see how it'll look */
+    mix-blend-mode: multiply;
 }
 
 .ecc-mirror { transform: scaleX(-1); }
